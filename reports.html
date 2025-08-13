@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Container Yard Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.datatables.net/2.1.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+        }
+        .navbar {
+            background-color: #343a40;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1100;
+        }
+        .sidebar {
+            height: calc(100vh - 56px);
+            position: fixed;
+            top: 56px;
+            left: 0;
+            width: 200px;
+            background-color: #2c3e50;
+            padding-top: 20px;
+            z-index: 1000;
+            animation: slideIn 0.5s ease-out;
+        }
+        .sidebar a {
+            color: white;
+            padding: 15px 20px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.3s;
+        }
+        .sidebar a:hover {
+            background-color: #34495e;
+        }
+        .content {
+            margin-left: 200px;
+            padding: 20px;
+            animation: fadeIn 0.8s ease-out;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            background: linear-gradient(135deg, #ffffff, #f1f5f9);
+        }
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        .card-icon {
+            font-size: 2.5rem;
+            color: #4bc0c0;
+            margin-bottom: 10px;
+        }
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .card-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #343a40;
+        }
+        .chart-container, .table-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            animation: fadeIn 0.8s ease-out;
+        }
+        .filter-container {
+            margin-bottom: 15px;
+        }
+        .btn-export {
+            transition: transform 0.2s;
+        }
+        .btn-export:hover {
+            transform: scale(1.1);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+        @media print {
+            .navbar, .sidebar, .nav-tabs, .no-print {
+                display: none;
+            }
+            .content {
+                margin-left: 0;
+            }
+            .tab-content > .tab-pane {
+                display: block !important;
+                opacity: 1 !important;
+            }
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -200px;
+                transition: left 0.3s ease;
+            }
+            .sidebar.active {
+                left: 0;
+            }
+            .content {
+                margin-left: 0;
+                transition: margin-left 0.3s ease;
+            }
+            .content.active {
+                margin-left: 200px;
+            }
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.7/js/dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script>
+        function logout() {
+            localStorage.removeItem('loggedIn');
+            window.location.href = 'login.html';
+        }
+        function checkLogin() {
+            if (!localStorage.getItem('loggedIn')) {
+                window.location.href = 'login.html';
+            }
+        }
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+            document.querySelector('.content').classList.toggle('active');
+        }
+        function getData() {
+            let containers = JSON.parse(localStorage.getItem('containers')) || [];
+            let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+            return { containers, transactions };
+        }
+        function populateFilters(tab) {
+            let { containers, transactions } = getData();
+            let types = [...new Set(containers.map(c => c.type))];
+            let customers = [...new Set(transactions.map(t => t.customer))];
+            let locations = [...new Set(containers.map(c => c.shippingDetails.to))];
+            let typeSelect = document.getElementById(`typeFilter${tab}`);
+            let customerSelect = document.getElementById(`customerFilter${tab}`);
+            let locationSelect = document.getElementById(`locationFilter${tab}`);
+            if (typeSelect) {
+                typeSelect.innerHTML = '<option value="">All Types</option>';
+                types.forEach(type => {
+                    let option = document.createElement('option');
+                    option.value = type;
+                    option.text = type;
+                    typeSelect.appendChild(option);
+                });
+            }
+            customerSelect.innerHTML = '<option value="">All Customers</option>';
+            customers.forEach(customer => {
+                let option = document.createElement('option');
+                option.value = customer;
+                option.text = customer;
+                customerSelect.appendChild(option);
+            });
+            locationSelect.innerHTML = '<option value="">All Locations</option>';
+            locations.forEach(location => {
+                let option = document.createElement('option');
+                option.value = location;
+                option.text = location;
+                locationSelect.appendChild(option);
+            });
+        }
+        function applyFilters(tab, startDate, endDate, customer, location, type) {
+            let { containers, transactions } = getData();
+            if (startDate && endDate) {
+                containers = containers.filter(c => {
+                    const dispatchDate = c.shippingDetails?.dispatchDate;
+                    return dispatchDate && new Date(dispatchDate) >= startDate && new Date(dispatchDate) <= endDate;
+                });
+                transactions = transactions.filter(t => {
+                    const date = new Date(t.date);
+                    return date >= startDate && date <= endDate;
+                });
+            }
+            if (customer) {
+                containers = containers.filter(c => c.rentalInfo?.customer === customer);
+                transactions = transactions.filter(t => t.customer === customer);
+            }
+            if (location) {
+                containers = containers.filter(c => c.shippingDetails?.to === location);
+            }
+            if (type && tab !== 'Shipping') {
+                containers = containers.filter(c => c.type === type);
+                transactions = transactions.filter(t => {
+                    let container = containers.find(c => c.serialNo === t.serialNo);
+                    return container && container.type === type;
+                });
+            }
+            return { containers, transactions };
+        }
+        function displayContainerCards(startDate, endDate, customer, location, type) {
+            const totalYardSpace = 10000; // sqm
+            let { containers } = applyFilters('Containers', startDate, endDate, customer, location, type);
+            let totalContainers = containers.length;
+            let available = containers.filter(c => c.status === 'available').length;
+            let rented = containers.filter(c => c.status === 'rented').length;
+            let totalSpace = containers.reduce((sum, c) => sum + (c.size || 0), 0);
+            document.getElementById('totalContainers').innerText = totalContainers;
+            document.getElementById('availableContainers').innerText = available;
+            document.getElementById('rentedContainers').innerText = rented;
+            document.getElementById('totalSpace').innerText = totalSpace.toFixed(0);
+        }
+        function displayContainerTable(startDate, endDate, customer, location, type) {
+            let { containers } = applyFilters('Containers', startDate, endDate, customer, location, type);
+            let table = document.getElementById('containerTable');
+            let tbody = table.getElementsByTagName('tbody')[0];
+            tbody.innerHTML = '';
+            containers.forEach(c => {
+                let row = tbody.insertRow();
+                row.insertCell().innerText = c.serialNo;
+                row.insertCell().innerText = c.type;
+                row.insertCell().innerText = c.size.toFixed(1);
+                row.insertCell().innerText = c.status;
+                row.insertCell().innerText = c.dailyRentalCost.toFixed(2);
+            });
+            if ($.fn.DataTable.isDataTable('#containerTable')) {
+                $('#containerTable').DataTable().destroy();
+            }
+            $('#containerTable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                order: [[0, 'asc']],
+                columnDefs: [{ targets: '_all', searchable: true, orderable: true }]
+            });
+        }
+        function displayContainerCharts(startDate, endDate, customer, location, type) {
+            let { containers } = applyFilters('Containers', startDate, endDate, customer, location, type);
+            let available = containers.filter(c => c.status === 'available').length;
+            let rented = containers.filter(c => c.status === 'rented').length;
+            new Chart(document.getElementById('containerStatusPie'), {
+                type: 'pie',
+                data: {
+                    labels: ['Available', 'Rented'],
+                    datasets: [{ data: [available, rented], backgroundColor: ['#36a2eb', '#ff6384'] }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'top' } } }
+            });
+            let typeMap = {};
+            containers.forEach(c => { typeMap[c.type] = (typeMap[c.type] || 0) + 1; });
+            new Chart(document.getElementById('containerTypeBar'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(typeMap),
+                    datasets: [{ label: 'Count', data: Object.values(typeMap), backgroundColor: '#4bc0c0' }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+            let locationMap = {};
+            containers.forEach(c => {
+                let loc = c.shippingDetails.to;
+                locationMap[loc] = (locationMap[loc] || 0) + 1;
+            });
+            new Chart(document.getElementById('containerLocationDoughnut'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(locationMap),
+                    datasets: [{ data: Object.values(locationMap), backgroundColor: ['#36a2eb', '#ff6384', '#4bc0c0', '#ffce56', '#9966ff', '#ff9f40'] }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'top' } } }
+            });
+        }
+        function displayRentalCards(startDate, endDate, customer, location, type) {
+            let { containers, transactions } = applyFilters('Rentals', startDate, endDate, customer, location, type);
+            let rentedContainers = containers.filter(c => c.status === 'rented');
+            let totalRentals = rentedContainers.length;
+            let activeRentals = rentedContainers.filter(c => c.rentalInfo && new Date(c.rentalInfo.startDate) <= new Date()).length;
+            let totalRevenue = transactions.reduce((sum, t) => sum + t.amount, 0);
+            let durations = rentedContainers.map(c => {
+                if (c.rentalInfo) {
+                    let start = new Date(c.rentalInfo.startDate);
+                    let end = new Date();
+                    return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+                }
+                return 0;
+            });
+            let avgDuration = durations.length ? (durations.reduce((a, b) => a + b, 0) / durations.length).toFixed(1) : 0;
+            document.getElementById('totalRentals').innerText = totalRentals;
+            document.getElementById('activeRentals').innerText = activeRentals;
+            document.getElementById('rentalRevenue').innerText = totalRevenue.toFixed(2);
+            document.getElementById('avgRentalDuration').innerText = avgDuration;
+        }
+        function displayRentalTable(startDate, endDate, customer, location, type) {
+            let { containers, transactions } = applyFilters('Rentals', startDate, endDate, customer, location, type);
+            let rentedContainers = containers.filter(c => c.status === 'rented');
+            let table = document.getElementById('rentalTable');
+            let tbody = table.getElementsByTagName('tbody')[0];
+            tbody.innerHTML = '';
+            rentedContainers.forEach(c => {
+                let transaction = transactions.find(t => t.serialNo === c.serialNo);
+                let row = tbody.insertRow();
+                row.insertCell().innerText = c.serialNo;
+                row.insertCell().innerText = c.rentalInfo?.customer || 'N/A';
+                row.insertCell().innerText = c.rentalInfo ? new Date(c.rentalInfo.startDate).toLocaleDateString() : 'N/A';
+                let duration = c.rentalInfo ? Math.ceil((new Date() - new Date(c.rentalInfo.startDate)) / (1000 * 60 * 60 * 24)) : 0;
+                row.insertCell().innerText = duration;
+                row.insertCell().innerText = transaction ? transaction.amount.toFixed(2) : '0.00';
+            });
+            if ($.fn.DataTable.isDataTable('#rentalTable')) {
+                $('#rentalTable').DataTable().destroy();
+            }
+            $('#rentalTable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                order: [[0, 'asc']],
+                columnDefs: [{ targets: '_all', searchable: true, orderable: true }]
+            });
+        }
+        function displayRentalCharts(startDate, endDate, customer, location, type) {
+            let { transactions } = applyFilters('Rentals', startDate, endDate, customer, location, type);
+            let customerMap = {};
+            transactions.forEach(t => {
+                customerMap[t.customer] = (customerMap[t.customer] || 0) + t.amount;
+            });
+            new Chart(document.getElementById('rentalCustomerBar'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(customerMap),
+                    datasets: [{ label: 'Revenue by Customer', data: Object.values(customerMap), backgroundColor: '#ffce56' }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+            let revenueMap = {};
+            transactions.forEach(t => {
+                let date = new Date(t.date).toLocaleDateString();
+                revenueMap[date] = (revenueMap[date] || 0) + t.amount;
+            });
+            new Chart(document.getElementById('rentalRevenueLine'), {
+                type: 'line',
+                data: {
+                    labels: Object.keys(revenueMap),
+                    datasets: [{ label: 'Rental Revenue', data: Object.values(revenueMap), borderColor: '#4bc0c0', fill: false }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+        }
+        function displayShippingCards(startDate, endDate, customer, location) {
+            let { containers } = applyFilters('Shipping', startDate, endDate, customer, location);
+            let totalShipments = containers.filter(c => c.shippingDetails).length;
+            let todayStr = new Date().toISOString().split('T')[0];
+            let dispatchedToday = containers.filter(c => c.shippingDetails && c.shippingDetails.dispatchDate === todayStr).length;
+            let transitTimes = containers.map(c => {
+                if (c.shippingDetails && c.shippingDetails.landDate && c.shippingDetails.dispatchDate) {
+                    return (new Date(c.shippingDetails.dispatchDate) - new Date(c.shippingDetails.landDate)) / (1000 * 60 * 60 * 24);
+                }
+                return 0;
+            }).filter(t => t > 0);
+            let avgTransitTime = transitTimes.length ? (transitTimes.reduce((a, b) => a + b, 0) / transitTimes.length).toFixed(1) : 0;
+            let inTransit = containers.filter(c => c.shippingDetails && new Date(c.shippingDetails.dispatchDate) > new Date()).length;
+            document.getElementById('totalShipments').innerText = totalShipments;
+            document.getElementById('dispatchedToday').innerText = dispatchedToday;
+            document.getElementById('avgTransitTime').innerText = avgTransitTime;
+            document.getElementById('inTransit').innerText = inTransit;
+        }
+        function displayShippingTable(startDate, endDate, customer, location) {
+            let { containers } = applyFilters('Shipping', startDate, endDate, customer, location);
+            let table = document.getElementById('shippingTable');
+            let tbody = table.getElementsByTagName('tbody')[0];
+            tbody.innerHTML = '';
+            containers.forEach(c => {
+                if (c.shippingDetails) {
+                    let row = tbody.insertRow();
+                    row.insertCell().innerText = c.serialNo;
+                    row.insertCell().innerText = c.shippingDetails.from;
+                    row.insertCell().innerText = c.shippingDetails.to;
+                    row.insertCell().innerText = c.shippingDetails.landDate;
+                    row.insertCell().innerText = c.shippingDetails.dispatchDate;
+                }
+            });
+            if ($.fn.DataTable.isDataTable('#shippingTable')) {
+                $('#shippingTable').DataTable().destroy();
+            }
+            $('#shippingTable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                order: [[0, 'asc']],
+                columnDefs: [{ targets: '_all', searchable: true, orderable: true }]
+            });
+        }
+        function displayShippingCharts(startDate, endDate, customer, location) {
+            let { containers } = applyFilters('Shipping', startDate, endDate, customer, location);
+            let destinationMap = {};
+            containers.forEach(c => {
+                if (c.shippingDetails) {
+                    let dest = c.shippingDetails.to;
+                    destinationMap[dest] = (destinationMap[dest] || 0) + 1;
+                }
+            });
+            new Chart(document.getElementById('shippingDestinationDoughnut'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(destinationMap),
+                    datasets: [{ data: Object.values(destinationMap), backgroundColor: ['#36a2eb', '#ff6384', '#4bc0c0', '#ffce56', '#9966ff', '#ff9f40'] }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'top' } } }
+            });
+            let typeMap = {};
+            containers.forEach(c => {
+                if (c.shippingDetails) {
+                    if (!typeMap[c.type]) {
+                        typeMap[c.type] = { shipped: 0 };
+                    }
+                    typeMap[c.type].shipped++;
+                }
+            });
+            new Chart(document.getElementById('shippingTypeBar'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(typeMap),
+                    datasets: [{ label: 'Shipped', data: Object.values(typeMap).map(t => t.shipped), backgroundColor: '#4bc0c0', stack: 'Stack 0' }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true, stacked: true }, x: { stacked: true } } }
+            });
+        }
+        function exportTableToCSV(tableId, filename) {
+            let table = document.getElementById(tableId);
+            let rows = Array.from(table.querySelectorAll('tr'));
+            let csv = rows.map(row => {
+                let cols = Array.from(row.querySelectorAll('th, td')).map(col => `"${col.innerText.replace(/"/g, '""')}"`);
+                return cols.join(',');
+            }).join('\n');
+            let blob = new Blob([csv], { type: 'text/csv' });
+            let link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+        }
+        function printCurrentTab() {
+            window.print();
+        }
+        window.onload = function() {
+            checkLogin();
+            ['Containers', 'Rentals', 'Shipping'].forEach(tab => {
+                populateFilters(tab);
+                flatpickr(`#dateRange${tab}`, {
+                    mode: 'range',
+                    dateFormat: 'Y-m-d',
+                    onChange: function(selectedDates) {
+                        let startDate = selectedDates[0] ? new Date(selectedDates[0]) : null;
+                        let endDate = selectedDates[1] ? new Date(selectedDates[1]) : null;
+                        let customer = document.getElementById(`customerFilter${tab}`).value;
+                        let location = document.getElementById(`locationFilter${tab}`).value;
+                        let type = document.getElementById(`typeFilter${tab}`)?.value || '';
+                        if (tab === 'Containers') {
+                            displayContainerCards(startDate, endDate, customer, location, type);
+                            displayContainerTable(startDate, endDate, customer, location, type);
+                            displayContainerCharts(startDate, endDate, customer, location, type);
+                        } else if (tab === 'Rentals') {
+                            displayRentalCards(startDate, endDate, customer, location, type);
+                            displayRentalTable(startDate, endDate, customer, location, type);
+                            displayRentalCharts(startDate, endDate, customer, location, type);
+                        } else if (tab === 'Shipping') {
+                            displayShippingCards(startDate, endDate, customer, location);
+                            displayShippingTable(startDate, endDate, customer, location);
+                            displayShippingCharts(startDate, endDate, customer, location);
+                        }
+                    }
+                });
+                document.getElementById(`customerFilter${tab}`).addEventListener('change', function() {
+                    let startDate = flatpickr(`#dateRange${tab}`).selectedDates[0] ? new Date(flatpickr(`#dateRange${tab}`).selectedDates[0]) : null;
+                    let endDate = flatpickr(`#dateRange${tab}`).selectedDates[1] ? new Date(flatpickr(`#dateRange${tab}`).selectedDates[1]) : null;
+                    let customer = this.value;
+                    let location = document.getElementById(`locationFilter${tab}`).value;
+                    let type = document.getElementById(`typeFilter${tab}`)?.value || '';
+                    if (tab === 'Containers') {
+                        displayContainerCards(startDate, endDate, customer, location, type);
+                        displayContainerTable(startDate, endDate, customer, location, type);
+                        displayContainerCharts(startDate, endDate, customer, location, type);
+                    } else if (tab === 'Rentals') {
+                        displayRentalCards(startDate, endDate, customer, location, type);
+                        displayRentalTable(startDate, endDate, customer, location, type);
+                        displayRentalCharts(startDate, endDate, customer, location, type);
+                    } else if (tab === 'Shipping') {
+                        displayShippingCards(startDate, endDate, customer, location);
+                        displayShippingTable(startDate, endDate, customer, location);
+                        displayShippingCharts(startDate, endDate, customer, location);
+                    }
+                });
+                document.getElementById(`locationFilter${tab}`).addEventListener('change', function() {
+                    let startDate = flatpickr(`#dateRange${tab}`).selectedDates[0] ? new Date(flatpickr(`#dateRange${tab}`).selectedDates[0]) : null;
+                    let endDate = flatpickr(`#dateRange${tab}`).selectedDates[1] ? new Date(flatpickr(`#dateRange${tab}`).selectedDates[1]) : null;
+                    let customer = document.getElementById(`customerFilter${tab}`).value;
+                    let location = this.value;
+                    let type = document.getElementById(`typeFilter${tab}`)?.value || '';
+                    if (tab === 'Containers') {
+                        displayContainerCards(startDate, endDate, customer, location, type);
+                        displayContainerTable(startDate, endDate, customer, location, type);
+                        displayContainerCharts(startDate, endDate, customer, location, type);
+                    } else if (tab === 'Rentals') {
+                        displayRentalCards(startDate, endDate, customer, location, type);
+                        displayRentalTable(startDate, endDate, customer, location, type);
+                        displayRentalCharts(startDate, endDate, customer, location, type);
+                    } else if (tab === 'Shipping') {
+                        displayShippingCards(startDate, endDate, customer, location);
+                        displayShippingTable(startDate, endDate, customer, location);
+                        displayShippingCharts(startDate, endDate, customer, location);
+                    }
+                });
+                if (document.getElementById(`typeFilter${tab}`)) {
+                    document.getElementById(`typeFilter${tab}`).addEventListener('change', function() {
+                        let startDate = flatpickr(`#dateRange${tab}`).selectedDates[0] ? new Date(flatpickr(`#dateRange${tab}`).selectedDates[0]) : null;
+                        let endDate = flatpickr(`#dateRange${tab}`).selectedDates[1] ? new Date(flatpickr(`#dateRange${tab}`).selectedDates[1]) : null;
+                        let customer = document.getElementById(`customerFilter${tab}`).value;
+                        let location = document.getElementById(`locationFilter${tab}`).value;
+                        let type = this.value;
+                        if (tab === 'Containers') {
+                            displayContainerCards(startDate, endDate, customer, location, type);
+                            displayContainerTable(startDate, endDate, customer, location, type);
+                            displayContainerCharts(startDate, endDate, customer, location, type);
+                        } else if (tab === 'Rentals') {
+                            displayRentalCards(startDate, endDate, customer, location, type);
+                            displayRentalTable(startDate, endDate, customer, location, type);
+                            displayRentalCharts(startDate, endDate, customer, location, type);
+                        }
+                    });
+                }
+            });
+            displayContainerCards();
+            displayContainerTable();
+            displayContainerCharts();
+            displayRentalCards();
+            displayRentalTable();
+            displayRentalCharts();
+            displayShippingCards();
+            displayShippingTable();
+            displayShippingCharts();
+        };
+    </script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">CYMS</a>
+            <button class="navbar-toggler no-print" type="button" onclick="toggleSidebar()">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
+    <div class="sidebar">
+        <a href="index.html">Dashboard</a>
+        <a href="container_management.html">Containers</a>
+        <a href="rental_management.html">Rentals</a>
+        <a href="shipping_management.html">Shipping</a>
+        <a href="financial_management.html">Finance</a>
+        <a href="reports.html">Reports</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </div>
+    <div class="content">
+        <h1 class="mb-4">Reports <button class="btn btn-secondary btn-sm btn-export no-print" onclick="printCurrentTab()">Print Current Report</button></h1>
+        <ul class="nav nav-tabs no-print" id="reportTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="containers-tab" data-bs-toggle="tab" data-bs-target="#containers" type="button" role="tab">Containers</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="rentals-tab" data-bs-toggle="tab" data-bs-target="#rentals" type="button" role="tab">Rentals</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping" type="button" role="tab">Shipping</button>
+            </li>
+        </ul>
+        <div class="tab-content" id="reportTabsContent">
+            <div class="tab-pane fade show active" id="containers" role="tabpanel">
+                <div class="filter-container no-print">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <label for="typeFilterContainers" class="form-label">Filter by Container Type:</label>
+                            <select id="typeFilterContainers" class="form-select"></select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="dateRangeContainers" class="form-label">Filter by Date Range:</label>
+                            <input type="text" id="dateRangeContainers" class="form-control" placeholder="Select date range">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="customerFilterContainers" class="form-label">Filter by Customer:</label>
+                            <select id="customerFilterContainers" class="form-select"></select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="locationFilterContainers" class="form-label">Filter by Location:</label>
+                            <select id="locationFilterContainers" class="form-select"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="card text-center p-3">
+                            <i class="fas fa-boxes card-icon"></i>
+                            <h5 class="card-title">Total Containers</h5>
+                            <p class="card-value" id="totalContainers">0</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center p-3">
+                            <i class="fas fa-check-circle card-icon"></i>
+                            <h5 class="card-title">Available Containers</h5>
+                            <p class="card-value" id="availableContainers">0</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center p-3">
+                            <i class="fas fa-truck-loading card-icon"></i>
+                            <h5 class="card-title">Rented Containers</h5>
+                            <p class="card-value" id="rentedContainers">0</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center p-3">
+                            <i class="fas fa-ruler-combined card-icon"></i>
+                            <h5 class="card-title">Total Space (sqm)</h5>
+                            <p class="card-value" id="totalSpace">0</p>
+                        </div>
+                    </div>
+                </div>
+                <h2 class="mt-5">Container Details <button class="btn btn-secondary btn-sm btn-export no-print" onclick="exportTableToCSV('containerTable', 'containers_report.csv')">Export to CSV</button></h2>
+                <div class="table-container">
+                    <table class="table table-striped table-hover" id="containerTable">
+                        <thead class="table-dark">
+                            <tr><th>Serial No</th><th>Type</th><th>Size (sqm)</th><th>Status</th><th>Daily Cost ($)</th></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <h2 class="mt-5">Container Analytics</h2>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="chart-container">
+                            <h3>Status Distribution</h3>
+                            <canvas id="containerStatusPie"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="chart-container">
+                            <h3>Container Types</h3>
+                            <canvas id="containerTypeBar"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="chart-container">
+                            <h3>Containers by Location</h3>
+                            <canvas id="containerLocationDoughnut"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="rentals" role="tabpanel">
+                <div class="filter-container no-print">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <label for="typeFilterRentals" class="form-label">Filter by Container Type:</label>
+                            <select id="typeFilterRentals" class="form-select"></select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="dateRangeRentals" class="form-label">Filter by Date Range:</label>
+                            <input type="text" id="dateRangeRentals" class="form-control" placeholder="Select date range">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="customerFilterRentals" class="form-label">Filter by Customer:</label>
+                            <select id="customerFilterRentals" class="form-select"></select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="locationFilterRentals" class="form-label">Filter by Location:</label>
+                            <select id="locationFilterRentals" class="form-select"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="card text-center p-3">
+                            <i class="fas fa-handshake card-icon"></i>
+                            <h5 class="card-title">Total Rentals</h5>
+                            <p class="card-value" id="totalRentals">0</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center p-3">
+                            <i class="fas fa-play-circle card-icon"></i>
+                            <h5 class="card-title">Active Rentals</h5>
+                            <p class="card-value" id="activeRentals">0</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center p-3">
+                            <i class="fas fa-dollar-sign card-icon"></i>
+                            <h5 class="card-title">Total Revenue ($)</h5>
+                            <p class="card-value" id="rentalRevenue">0</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center p-3">
+                            <i class="fas fa-clock card-icon"></i>
+                            <h5 class="card-title">Avg Duration (days)</h5>
+                            <p class="card-value" id="avgRentalDuration">0</p>
+                        </div>
+                    </div>
+                </div>
+                <h2 class="mt-5">Rental Details <button class="btn btn-secondary btn-sm btn-export no-print" onclick="exportTableToCSV('rentalTable', 'rentals_report.csv')">Export to CSV</button></h2>
+                <div class="table-container">
+                    <table class="table table-striped table-hover" id="rentalTable">
+                        <thead class="table-dark">
+                            <tr><th>Serial No</th><th>Customer</th><th>Start Date</th><th>Duration (days)</th><th>Amount ($)</th></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <h2 class="mt-5">Rental Analytics</h2>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <h3>Revenue by Customer</h3>
+                            <canvas id="rentalCustomerBar"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <h3>Rental Revenue Over Time</h3>
+                            <canvas id="rentalRevenueLine"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="shipping" role="tabpanel">
+                <div class="filter-container no-print">
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label for="dateRangeShipping" class="form-label">Filter by Date Range:</label>
+                            <input type="text" id="dateRangeShipping" class="form-control" placeholder="Select date range">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="customerFilterShipping" class="form-label">Filter by Customer:</label>
+                            <select id="customerFilterShipping" class="form-select"></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="locationFilterShipping" class="form-label">Filter by Location:</label>
+                            <select id="locationFilterShipping" class="form-select"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="card text-center p-3">
+                            <i class="fas fa-ship card-icon"></i>
+                            <h5 class="card-title">Total Shipments</h5>
+                            <p class="card-value" id="totalShipments">0</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center p-3">
+                            <i class="fas fa-shipping-fast card-icon"></i>
+                            <h5 class="card-title">Dispatched Today</h5>
+                            <p class="card-value" id="dispatchedToday">0</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center p-3">
+                            <i class="fas fa-clock card-icon"></i>
+                            <h5 class="card-title">Avg Transit Time (days)</h5>
+                            <p class="card-value" id="avgTransitTime">0</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center p-3">
+                            <i class="fas fa-truck-moving card-icon"></i>
+                            <h5 class="card-title">In Transit</h5>
+                            <p class="card-value" id="inTransit">0</p>
+                        </div>
+                    </div>
+                </div>
+                <h2 class="mt-5">Shipping Details <button class="btn btn-secondary btn-sm btn-export no-print" onclick="exportTableToCSV('shippingTable', 'shipping_report.csv')">Export to CSV</button></h2>
+                <div class="table-container">
+                    <table class="table table-striped table-hover" id="shippingTable">
+                        <thead class="table-dark">
+                            <tr><th>Serial No</th><th>From</th><th>To</th><th>Land Date</th><th>Dispatch Date</th></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <h2 class="mt-5">Shipping Analytics</h2>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <h3>Shipments by Destination</h3>
+                            <canvas id="shippingDestinationDoughnut"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <h3>Shipments by Container Type</h3>
+                            <canvas id="shippingTypeBar"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>
