@@ -1,0 +1,82 @@
+{
+  "login": {
+    "login": "Login",
+    "username": "Username",
+    "password": "Password",
+    "selectLanguage": "Select Language",
+    "english": "English",
+    "arabic": "Arabic"
+  },
+  "dashboard": {
+    "dashboard": "Dashboard",
+    "keyMetrics": "Key Metrics",
+    "totalContainers": "Total Containers",
+    "availableContainers": "Available Containers",
+    "rentedContainers": "Rented Containers",
+    "dispatchingToday": "Dispatching Today",
+    "availableSpace": "Available Space (sqm)",
+    "totalRevenue": "Total Revenue ($)",
+    "containerTypeSummary": "Container Type Summary",
+    "type": "Type",
+    "count": "Count",
+    "totalSpace": "Total Space (sqm)",
+    "avgDailyCost": "Avg Daily Cost ($)",
+    "analyticsCharts": "Analytics Charts",
+    "containerStatus": "Container Status",
+    "containerTypes": "Container Types",
+    "revenueOverTime": "Revenue Over Time",
+    "print": "Print",
+    "exportCSV": "Export to CSV",
+    "filterByDateRange": "Filter by Date Range",
+    "allCustomers": "All Customers",
+    "allLocations": "All Locations",
+    "filterByCustomer": "Filter by Customer",
+    "filterByLocation": "Filter by Location"
+  },
+  "containerManagement": {
+    "containerManagement": "Container Management",
+    "addEditContainer": "Add/Edit Container",
+    "serialNo": "Serial No",
+    "type": "Type (e.g., 20ft, 40ft)",
+    "size": "Size (sqm)",
+    "dailyRentalCost": "Daily Rental Cost ($)",
+    "save": "Save",
+    "containerList": "Container List",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "rentalManagement": {
+    "rentalManagement": "Rental Management",
+    "rentContainer": "Rent Container",
+    "container": "Container",
+    "customerName": "Customer Name",
+    "dailyPrice": "Daily Price ($)",
+    "rent": "Rent",
+    "currentRentals": "Current Rentals"
+  },
+  "shippingManagement": {
+    "shippingManagement": "Shipping Management",
+    "containerShippingDetails": "Container Shipping Details",
+    "from": "From",
+    "to": "To",
+    "date": "Date",
+    "edit": "Edit",
+    "save": "Save"
+  },
+  "financialManagement": {
+    "financialManagement": "Financial Management",
+    "transactions": "Transactions",
+    "type": "Type",
+    "serialNo": "Serial No",
+    "customer": "Customer",
+    "amount": "Amount",
+    "date": "Date",
+    "total": "Total",
+    "ledger": "Ledger",
+    "monthlyReport": "Monthly Report",
+    "quarterlyReport": "Quarterly Report",
+    "revenueByType": "Revenue by Type",
+    "revenueByCustomer": "Revenue by Customer",
+    "totalRevenue": "Total Revenue"
+  }
+}

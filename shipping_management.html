@@ -1,440 +1,487 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shipping Management - CYMS</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link href="https://cdn.datatables.net/2.1.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-            margin: 0;
-            font-family: 'Arial', sans-serif;
-        }
-        .navbar {
-            background-color: #343a40;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1100;
-        }
-        .sidebar {
-            height: calc(100vh - 56px);
-            position: fixed;
-            top: 56px;
-            left: 0;
-            width: 200px;
-            background-color: #2c3e50;
-            padding-top: 20px;
-            z-index: 1000;
-            animation: slideIn 0.5s ease-out;
-        }
-        .sidebar a {
-            color: white;
-            padding: 15px 20px;
-            text-decoration: none;
-            display: block;
-            transition: background-color 0.3s;
-        }
-        .sidebar a:hover {
-            background-color: #34495e;
-        }
-        .content {
-            margin-left: 200px;
-            padding: 20px;
-            animation: fadeIn 0.8s ease-out;
-        }
-        .card, .table-container, .chart-container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            animation: fadeIn 0.8s ease-out;
-        }
-        .card:hover, .btn-export:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        }
-        .btn-export {
-            transition: transform 0.2s;
-        }
-        .btn-export:hover {
-            transform: scale(1.1);
-        }
-        .filter-container {
-            margin-bottom: 15px;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes slideIn {
-            from { transform: translateX(-100%); }
-            to { transform: translateX(0); }
-        }
-        @media print {
-            .navbar, .sidebar, .no-print {
-                display: none;
-            }
-            .content {
-                margin-left: 0;
-            }
-        }
-        @media (max-width: 768px) {
-            .sidebar {
-                left: -200px;
-                transition: left 0.3s ease;
-            }
-            .sidebar.active {
-                left: 0;
-            }
-            .content {
-                margin-left: 0;
-                transition: margin-left 0.3s ease;
-            }
-            .content.active {
-                margin-left: 200px;
-            }
-        }
-    </style>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <title>CYMS - Shipping Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.datatables.net/2.1.7/js/dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/2.1.7/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
-    <script>
-        function logout() {
-            localStorage.removeItem('loggedIn');
-            window.location.href = 'login.html';
+    <script src="https://unpkg.com/i18next@23.15.1/dist/umd/i18next.min.js"></script>
+    <style>
+        [dir="rtl"] body { direction: rtl; font-family: 'Noto Naskh Arabic', sans-serif; }
+        [dir="rtl"] select, [dir="rtl"] input { text-align: right; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f7fa; }
+        header { background: linear-gradient(90deg, #007bff, #0056b3); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); z-index: 1100; position: relative; }
+        .sidebar {
+            position: fixed; top: 0; left: 0; height: 100%; width: 200px; background-color: #2c3e50; padding-top: 70px;
+            transform: translateX(-200px); transition: transform 0.3s ease-in-out; z-index: 1000;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
         }
-        function checkLogin() {
-            if (!localStorage.getItem('loggedIn')) {
-                window.location.href = 'login.html';
-            }
+        .sidebar.active { transform: translateX(0); }
+        .sidebar a { color: #ecf0f1; display: block; padding: 12px 20px; text-decoration: none; font-size: 1rem; transition: background 0.3s ease; }
+        .sidebar a:hover { background-color: #34495e; }
+        .sidebar-close-btn { position: absolute; top: 10px; right: 10px; color: #ecf0f1; font-size: 1.5rem; cursor: pointer; }
+        [dir="rtl"] .sidebar { left: auto; right: 0; transform: translateX(200px); box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2); }
+        [dir="rtl"] .sidebar.active { transform: translateX(0); }
+        [dir="rtl"] .sidebar-close-btn { right: auto; left: 10px; }
+        .main-content { padding: 2rem; }
+        .card { border: none; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        .chart-container {
+            position: relative; height: 250px; width: 100%; max-width: 100%; max-height: 250px; overflow: hidden;
+            background: #fff; border-radius: 10px; padding: 1rem; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); box-sizing: border-box;
         }
-        function toggleSidebar() {
-            document.querySelector('.sidebar').classList.toggle('active');
-            document.querySelector('.content').classList.toggle('active');
-        }
-        function populateFilters() {
-            let containers = JSON.parse(localStorage.getItem('containers')) || [];
-            let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
-            let customers = [...new Set(transactions.map(t => t.customer))];
-            let locations = [...new Set(containers.map(c => c.shippingDetails.to))];
-            let serialSelect = document.getElementById('serialNo');
-            serialSelect.innerHTML = '<option value="">Select Container</option>';
-            containers.forEach(c => {
-                let option = document.createElement('option');
-                option.value = c.serialNo;
-                option.text = `${c.serialNo} (${c.type})`;
-                serialSelect.appendChild(option);
-            });
-            let customerSelect = document.getElementById('customerFilter');
-            customerSelect.innerHTML = '<option value="">All Customers</option>';
-            customers.forEach(customer => {
-                let option = document.createElement('option');
-                option.value = customer;
-                option.text = customer;
-                customerSelect.appendChild(option);
-            });
-            let locationSelect = document.getElementById('locationFilter');
-            locationSelect.innerHTML = '<option value="">All Locations</option>';
-            locations.forEach(location => {
-                let option = document.createElement('option');
-                option.value = location;
-                option.text = location;
-                locationSelect.appendChild(option);
-            });
-        }
-        function applyFilters(startDate, endDate, customer, location) {
-            let containers = JSON.parse(localStorage.getItem('containers')) || [];
-            if (startDate && endDate) {
-                containers = containers.filter(c => {
-                    const dispatchDate = c.shippingDetails?.dispatchDate;
-                    return dispatchDate && new Date(dispatchDate) >= startDate && new Date(dispatchDate) <= endDate;
-                });
-            }
-            if (customer) {
-                containers = containers.filter(c => c.rentalInfo?.customer === customer);
-            }
-            if (location) {
-                containers = containers.filter(c => c.shippingDetails?.to === location);
-            }
-            return containers;
-        }
-        function displayShipping(startDate, endDate, customer, location) {
-            let containers = applyFilters(startDate, endDate, customer, location);
-            let table = document.getElementById('shippingTable');
-            let tbody = table.getElementsByTagName('tbody')[0];
-            tbody.innerHTML = '';
-            containers.forEach(c => {
-                if (c.shippingDetails) {
-                    let row = tbody.insertRow();
-                    row.insertCell().innerText = c.serialNo;
-                    row.insertCell().innerText = c.type;
-                    row.insertCell().innerText = c.size.toFixed(1);
-                    row.insertCell().innerText = c.shippingDetails.companyName || 'N/A';
-                    row.insertCell().innerText = c.shippingDetails.from || 'N/A';
-                    row.insertCell().innerText = c.shippingDetails.to || 'N/A';
-                    row.insertCell().innerText = c.shippingDetails.landDate || 'N/A';
-                    row.insertCell().innerText = c.shippingDetails.dispatchDate || 'N/A';
-                    let actionsCell = row.insertCell();
-                    actionsCell.innerHTML = `
-                        <button class="btn btn-sm btn-primary no-print" onclick="editShipping('${c.serialNo}')"><i class="fas fa-edit"></i></button>
-                    `;
-                }
-            });
-            if ($.fn.DataTable.isDataTable('#shippingTable')) {
-                $('#shippingTable').DataTable().destroy();
-            }
-            $('#shippingTable').DataTable({
-                responsive: true,
-                pageLength: 10,
-                order: [[0, 'asc']],
-                columnDefs: [{ targets: '_all', searchable: true, orderable: true }]
-            });
-        }
-        function displayCharts(startDate, endDate, customer, location) {
-            let containers = applyFilters(startDate, endDate, customer, location);
-            let destinationMap = {};
-            containers.forEach(c => {
-                if (c.shippingDetails) {
-                    let dest = c.shippingDetails.to;
-                    destinationMap[dest] = (destinationMap[dest] || 0) + 1;
-                }
-            });
-            new Chart(document.getElementById('shippingDestinationDoughnut'), {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(destinationMap),
-                    datasets: [{ data: Object.values(destinationMap), backgroundColor: ['#36a2eb', '#ff6384', '#4bc0c0', '#ffce56', '#9966ff', '#ff9f40'] }]
-                },
-                options: { responsive: true, plugins: { legend: { position: 'top' } } }
-            });
-            let typeMap = {};
-            containers.forEach(c => {
-                if (c.shippingDetails) {
-                    typeMap[c.type] = (typeMap[c.type] || 0) + 1;
-                }
-            });
-            new Chart(document.getElementById('shippingTypeBar'), {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(typeMap),
-                    datasets: [{ label: 'Shipments', data: Object.values(typeMap), backgroundColor: '#4bc0c0' }]
-                },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
-            });
-        }
-        function editShipping(serialNo) {
-            let containers = JSON.parse(localStorage.getItem('containers')) || [];
-            let container = containers.find(c => c.serialNo === serialNo);
-            if (container && container.shippingDetails) {
-                document.getElementById('serialNo').value = container.serialNo;
-                document.getElementById('companyName').value = container.shippingDetails.companyName || '';
-                document.getElementById('from').value = container.shippingDetails.from || '';
-                document.getElementById('to').value = container.shippingDetails.to || '';
-                document.getElementById('landDate').value = container.shippingDetails.landDate || '';
-                document.getElementById('dispatchDate').value = container.shippingDetails.dispatchDate || '';
-            }
-        }
-        function saveShipping() {
-            let serialNo = document.getElementById('serialNo').value;
-            let companyName = document.getElementById('companyName').value;
-            let from = document.getElementById('from').value;
-            let to = document.getElementById('to').value;
-            let landDate = document.getElementById('landDate').value;
-            let dispatchDate = document.getElementById('dispatchDate').value;
-            if (!serialNo || !companyName || !from || !to || !landDate || !dispatchDate) {
-                alert('Please fill in all fields.');
-                return;
-            }
-            let containers = JSON.parse(localStorage.getItem('containers')) || [];
-            let container = containers.find(c => c.serialNo === serialNo);
-            if (container) {
-                container.shippingDetails = { companyName, from, to, landDate, dispatchDate };
-                localStorage.setItem('containers', JSON.stringify(containers));
-                document.getElementById('shippingForm').reset();
-                let startDate = flatpickr('#dateRange').selectedDates[0] ? new Date(flatpickr('#dateRange').selectedDates[0]) : null;
-                let endDate = flatpickr('#dateRange').selectedDates[1] ? new Date(flatpickr('#dateRange').selectedDates[1]) : null;
-                let customer = document.getElementById('customerFilter').value;
-                let location = document.getElementById('locationFilter').value;
-                displayShipping(startDate, endDate, customer, location);
-                displayCharts(startDate, endDate, customer, location);
-            } else {
-                alert('Container not found.');
-            }
-        }
-        function exportTableToCSV(tableId, filename) {
-            let table = document.getElementById(tableId);
-            let rows = Array.from(table.querySelectorAll('tr'));
-            let csv = rows.map(row => {
-                let cols = Array.from(row.querySelectorAll('th, td')).map(col => `"${col.innerText.replace(/"/g, '""')}"`);
-                return cols.join(',');
-            }).join('\n');
-            let blob = new Blob([csv], { type: 'text/csv' });
-            let link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = filename;
-            link.click();
-        }
-        function printTable() {
-            let table = document.getElementById('shippingTable').outerHTML;
-            let printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>Print Shipping - CYMS</title>
-                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-                    <style>
-                        body { padding: 20px; }
-                        .table-container { margin-bottom: 20px; }
-                    </style>
-                </head>
-                <body>
-                    <h2>Container Shipping Details</h2>
-                    <div class="table-container">${table}</div>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-            printWindow.print();
-        }
-        window.onload = function() {
-            checkLogin();
-            populateFilters();
-            flatpickr('#dateRange', {
-                mode: 'range',
-                dateFormat: 'Y-m-d',
-                onChange: function(selectedDates) {
-                    let startDate = selectedDates[0] ? new Date(selectedDates[0]) : null;
-                    let endDate = selectedDates[1] ? new Date(selectedDates[1]) : null;
-                    let customer = document.getElementById('customerFilter').value;
-                    let location = document.getElementById('locationFilter').value;
-                    displayShipping(startDate, endDate, customer, location);
-                    displayCharts(startDate, endDate, customer, location);
-                }
-            });
-            flatpickr('#landDate', { dateFormat: 'Y-m-d' });
-            flatpickr('#dispatchDate', { dateFormat: 'Y-m-d' });
-            document.getElementById('customerFilter').addEventListener('change', function() {
-                let startDate = flatpickr('#dateRange').selectedDates[0] ? new Date(flatpickr('#dateRange').selectedDates[0]) : null;
-                let endDate = flatpickr('#dateRange').selectedDates[1] ? new Date(flatpickr('#dateRange').selectedDates[1]) : null;
-                let customer = this.value;
-                let location = document.getElementById('locationFilter').value;
-                displayShipping(startDate, endDate, customer, location);
-                displayCharts(startDate, endDate, customer, location);
-            });
-            document.getElementById('locationFilter').addEventListener('change', function() {
-                let startDate = flatpickr('#dateRange').selectedDates[0] ? new Date(flatpickr('#dateRange').selectedDates[0]) : null;
-                let endDate = flatpickr('#dateRange').selectedDates[1] ? new Date(flatpickr('#dateRange').selectedDates[1]) : null;
-                let customer = document.getElementById('customerFilter').value;
-                let location = this.value;
-                displayShipping(startDate, endDate, customer, location);
-                displayCharts(startDate, endDate, customer, location);
-            });
-            displayShipping();
-            displayCharts();
-        };
-    </script>
+        .chart-container canvas { width: 100% !important; height: 100% !important; max-width: 100%; max-height: 100%; }
+        .lang-select-container { display: flex; align-items: center; gap: 10px; }
+        h2, h3, h4 { color: #2c3e50; font-weight: 600; }
+        .btn-primary { background-color: #007bff; border: none; border-radius: 5px; transition: background-color 0.2s; }
+        .btn-primary:hover { background-color: #0056b3; }
+        .table { background: #fff; border-radius: 10px; overflow: hidden; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">CYMS</a>
-            <button class="navbar-toggler no-print" type="button" onclick="toggleSidebar()">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+    <header class="bg-primary text-white p-3">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-light toggle-btn" onclick="toggleSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h1 class="h3 mb-0" data-i18n="index.cyms">CYMS</h1>
+            </div>
+            <div class="lang-select-container">
+                <i class="bi bi-translate"></i>
+                <select class="form-select w-auto" onchange="changeLanguage(this.value)">
+                    <option value="en">English</option>
+                    <option value="ar">عربي</option>
+                </select>
+            </div>
         </div>
+    </header>
+    <nav class="sidebar" id="sidebar">
+        <i class="bi bi-x sidebar-close-btn"></i>
+        <a href="index.html" data-i18n="index.dashboard">Dashboard</a>
+        <a href="container_management.html" data-i18n="index.containers">Containers</a>
+        <a href="rental_management.html" data-i18n="index.rentals">Rentals</a>
+        <a href="shipping_management.html" data-i18n="index.shipping">Shipping</a>
+        <a href="financial_management.html" data-i18n="index.finance">Finance</a>
+        <a href="reports.html" data-i18n="index.reports">Reports</a>
+        <a href="#" onclick="logout()" data-i18n="index.logout">Logout</a>
     </nav>
-    <div class="sidebar">
-        <a href="index.html">Dashboard</a>
-        <a href="container_management.html">Containers</a>
-        <a href="rental_management.html">Rentals</a>
-        <a href="shipping_management.html">Shipping</a>
-        <a href="financial_management.html">Finance</a>
-        <a href="reports.html">Reports</a>
-        <a href="#" onclick="logout()">Logout</a>
-    </div>
-    <div class="content">
-        <h1 class="mb-4">Container Shipping Details</h1>
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Edit Shipping for Serial: <span id="editSerial"></span></h5>
-                <form id="shippingForm">
+    <main class="container-fluid main-content" id="main-content">
+        <section class="mb-5">
+            <div class="section-header">
+                <h2 class="h4" data-i18n="shipping.containerShippingDetails">Container Shipping Details</h2>
+            </div>
+            <div class="card p-4 mb-4">
+                <h3 class="h5" data-i18n="shipping.editShipping">Edit Shipping for Serial:</h3>
+                <form>
                     <div class="mb-3">
-                        <label for="serialNo" class="form-label">Serial No</label>
-                        <select class="form-select" id="serialNo"></select>
+                        <label class="form-label" data-i18n="shipping.serialNo">Serial No</label>
+                        <select class="form-select" id="serial-no">
+                            <option value="">Select Serial No</option>
+                        </select>
                     </div>
                     <div class="mb-3">
-                        <label for="companyName" class="form-label">Company Name</label>
-                        <input type="text" class="form-control" id="companyName">
+                        <label class="form-label" data-i18n="shipping.companyName">Company Name</label>
+                        <input type="text" class="form-control" data-i18n-placeholder="shipping.companyName" placeholder="Company Name">
                     </div>
                     <div class="mb-3">
-                        <label for="from" class="form-label">From (Land From)</label>
-                        <input type="text" class="form-control" id="from">
+                        <label class="form-label" data-i18n="shipping.from">From (Land From)</label>
+                        <input type="text" class="form-control" data-i18n-placeholder="shipping.from" placeholder="From">
                     </div>
                     <div class="mb-3">
-                        <label for="to" class="form-label">Dispatch To</label>
-                        <input type="text" class="form-control" id="to">
+                        <label class="form-label" data-i18n="shipping.dispatchTo">Dispatch To</label>
+                        <input type="text" class="form-control" data-i18n-placeholder="shipping.dispatchTo" placeholder="Dispatch To">
                     </div>
                     <div class="mb-3">
-                        <label for="landDate" class="form-label">Land Date</label>
-                        <input type="text" class="form-control" id="landDate">
+                        <label class="form-label" data-i18n="shipping.landDate">Land Date</label>
+                        <input type="date" class="form-control">
                     </div>
                     <div class="mb-3">
-                        <label for="dispatchDate" class="form-label">Dispatch Date</label>
-                        <input type="text" class="form-control" id="dispatchDate">
+                        <label class="form-label" data-i18n="shipping.dispatchDate">Dispatch Date</label>
+                        <input type="date" class="form-control">
                     </div>
-                    <button type="button" class="btn btn-primary no-print" onclick="saveShipping()">Save</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="shipping.save">Save</button>
                 </form>
             </div>
-        </div>
-        <h2 class="mt-5">Shipping Details <button class="btn btn-secondary btn-sm btn-export no-print" onclick="exportTableToCSV('shippingTable', 'shipping.csv')">Export to CSV</button> <button class="btn btn-secondary btn-sm btn-export no-print" onclick="printTable()">Print</button></h2>
-        <div class="filter-container no-print">
-            <div class="row g-2">
-                <div class="col-md-4">
-                    <label for="dateRange" class="form-label">Filter by Date Range:</label>
-                    <input type="text" id="dateRange" class="form-control" placeholder="Select date range">
-                </div>
-                <div class="col-md-4">
-                    <label for="customerFilter" class="form-label">Filter by Customer:</label>
-                    <select id="customerFilter" class="form-select"></select>
-                </div>
-                <div class="col-md-4">
-                    <label for="locationFilter" class="form-label">Filter by Location:</label>
-                    <select id="locationFilter" class="form-select"></select>
+        </section>
+        <section class="mb-5">
+            <div class="section-header">
+                <h3 class="h5" data-i18n="shipping.shippingDetails">Shipping Details</h3>
+                <div>
+                    <button class="btn btn-primary me-2" data-i18n="index.exportCsv">Export to CSV</button>
+                    <button class="btn btn-primary" data-i18n="index.print">Print</button>
                 </div>
             </div>
-        </div>
-        <div class="table-container">
-            <table class="table table-striped table-hover" id="shippingTable">
-                <thead class="table-dark">
-                    <tr><th>Serial No</th><th>Type</th><th>Size (sqm)</th><th>Company Name</th><th>From</th><th>Dispatch To</th><th>Land Date</th><th>Dispatch Date</th><th class="no-print">Actions</th></tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-        <h2 class="mt-5">Shipping Analytics</h2>
-        <div class="row g-4">
-            <div class="col-md-6">
-                <div class="chart-container">
-                    <h3>Shipments by Destination</h3>
-                    <canvas id="shippingDestinationDoughnut"></canvas>
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold" data-i18n="index.filterByDateRange">Filter by Date Range:</label>
+                    <div class="d-flex gap-2">
+                        <input type="date" class="form-control">
+                        <input type="date" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold" data-i18n="index.filterByCustomer">Filter by Customer:</label>
+                    <select class="form-select">
+                        <option data-i18n="index.allCustomers">All Customers</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold" data-i18n="index.filterByLocation">Filter by Location:</label>
+                    <select class="form-select">
+                        <option data-i18n="index.allLocations">All Locations</option>
+                    </select>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="chart-container">
-                    <h3>Shipments by Container Type</h3>
-                    <canvas id="shippingTypeBar"></canvas>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="shipping-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th data-i18n="shipping.serialNo">Serial No</th>
+                            <th data-i18n="shipping.type">Type</th>
+                            <th data-i18n="shipping.size">Size (sqm)</th>
+                            <th data-i18n="shipping.companyName">Company Name</th>
+                            <th data-i18n="shipping.from">From</th>
+                            <th data-i18n="shipping.dispatchTo">Dispatch To</th>
+                            <th data-i18n="shipping.landDate">Land Date</th>
+                            <th data-i18n="shipping.dispatchDate">Dispatch Date</th>
+                            <th data-i18n="shipping.actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+        <section>
+            <div class="section-header">
+                <h3 class="h5" data-i18n="shipping.shippingAnalytics">Shipping Analytics</h3>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="chart-container">
+                        <h4 class="fs-6 mb-3" data-i18n="reports.shipmentsByDestination">Shipments by Destination</h4>
+                        <canvas id="shipments-destination-chart"></canvas>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="chart-container">
+                        <h4 class="fs-6 mb-3" data-i18n="reports.shipmentsByContainerType">Shipments by Container Type</h4>
+                        <canvas id="shipments-container-type-chart"></canvas>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        </section>
+    </main>
+
+    <script>
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+
+        let charts = {};
+
+        function updateContent() {
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                element.textContent = i18next.t(key);
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                element.placeholder = i18next.t(key);
+            });
+            document.documentElement.setAttribute('dir', i18next.language === 'ar' ? 'rtl' : 'ltr');
+            document.documentElement.setAttribute('lang', i18next.language);
+        }
+
+        function changeLanguage(lng) {
+            if (typeof i18next === 'undefined') {
+                console.error('Cannot change language: i18next is not loaded.');
+                return;
+            }
+            i18next.changeLanguage(lng, function(err, t) {
+                if (err) {
+                    console.error('Language change failed:', err);
+                    return;
+                }
+                console.log('Changing language to:', lng);
+                localStorage.setItem('language', lng);
+                updateContent();
+                initializeCharts();
+                loadShippingData();
+            });
+        }
+
+        function generateMockShippingData(count) {
+            const types = ['Standard', 'Refrigerated', 'Flat Rack', 'Open Top'];
+            const companies = ['Company A', 'Company B', 'Company C', 'Company D'];
+            const locations = ['Location A', 'Location B', 'Location C'];
+            return Array.from({ length: count }, (_, i) => ({
+                serialNo: `CONT-${String(i + 1).padStart(3, '0')}`,
+                type: types[Math.floor(Math.random() * types.length)],
+                size: Math.floor(Math.random() * 61) + 20,
+                companyName: companies[Math.floor(Math.random() * companies.length)],
+                from: locations[Math.floor(Math.random() * locations.length)],
+                dispatchTo: locations[Math.floor(Math.random() * locations.length)],
+                landDate: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
+                dispatchDate: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0]
+            }));
+        }
+
+        function loadShippingData() {
+            const shipping = generateMockShippingData(50);
+            const tbody = document.querySelector('#shipping-table tbody');
+            if (!tbody) {
+                console.error('Shipping table body not found');
+                return;
+            }
+            tbody.innerHTML = '';
+            shipping.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.serialNo}</td>
+                    <td>${item.type}</td>
+                    <td>${item.size}</td>
+                    <td>${item.companyName}</td>
+                    <td>${item.from}</td>
+                    <td>${item.dispatchTo}</td>
+                    <td>${item.landDate}</td>
+                    <td>${item.dispatchDate}</td>
+                    <td><button class="btn btn-sm btn-primary" data-i18n="shipping.edit">Edit</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+            console.log('Shipping table populated with', shipping.length, 'rows');
+
+            const serialNoSelect = document.querySelector('#serial-no');
+            if (!serialNoSelect) {
+                console.error('Serial No select element not found');
+                return;
+            }
+            serialNoSelect.innerHTML = '<option value="">Select Serial No</option>';
+            shipping.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.serialNo;
+                option.textContent = item.serialNo;
+                serialNoSelect.appendChild(option);
+            });
+            console.log('Serial No select populated with', shipping.length, 'options');
+        }
+
+        function initializeCharts() {
+            Object.values(charts).forEach(chart => chart.destroy());
+            charts['shipments-destination'] = new Chart(document.getElementById('shipments-destination-chart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['Location A', 'Location B', 'Location C'],
+                    datasets: [{ data: [20, 15, 15], backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'], borderWidth: 1 }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    layout: { padding: 10 }, 
+                    plugins: { 
+                        legend: { position: 'top' }, 
+                        title: { display: true, text: i18next.t('reports.shipmentsByDestination') } 
+                    } 
+                }
+            });
+            charts['shipments-container-type'] = new Chart(document.getElementById('shipments-container-type-chart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Standard', 'Refrigerated', 'Flat Rack', 'Open Top'],
+                    datasets: [{ label: i18next.t('index.count'), data: [15, 10, 12, 13], backgroundColor: '#36A2EB', borderWidth: 1 }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    layout: { padding: 10 }, 
+                    plugins: { 
+                        legend: { display: false }, 
+                        title: { display: true, text: i18next.t('reports.shipmentsByContainerType') } 
+                    }, 
+                    scales: { y: { beginAtZero: true } } 
+                }
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'login.html';
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+            } else {
+                console.error('Sidebar element not found');
+            }
+        }
+
+        function setupSidebarAutoHide() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.querySelector('.toggle-btn');
+            if (!sidebar || !toggleBtn) {
+                console.error('Sidebar or toggle button not found');
+                return;
+            }
+            // Auto-hide on sidebar link or close button click
+            const sidebarLinks = sidebar.querySelectorAll('a');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    sidebar.classList.remove('active');
+                    console.log('Sidebar hidden due to link click');
+                });
+            });
+            const closeButton = sidebar.querySelector('.sidebar-close-btn');
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    sidebar.classList.remove('active');
+                    console.log('Sidebar hidden due to close button click');
+                });
+            } else {
+                console.error('Sidebar close button not found');
+            }
+            // Auto-hide on outside click
+            document.addEventListener('click', (event) => {
+                if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target) && sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                    console.log('Sidebar hidden due to outside click');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'login.html';
+                return;
+            }
+            if (typeof i18next !== 'undefined') {
+                i18next.init({
+                    lng: localStorage.getItem('language') || 'en',
+                    fallbackLng: 'en',
+                    resources: {
+                        en: {
+                            translation: {
+                                login: { english: 'English', arabic: 'Arabic' },
+                                index: {
+                                    cyms: 'CYMS',
+                                    dashboard: 'Dashboard',
+                                    containers: 'Containers',
+                                    rentals: 'Rentals',
+                                    shipping: 'Shipping',
+                                    finance: 'Finance',
+                                    reports: 'Reports',
+                                    logout: 'Logout',
+                                    filterByDateRange: 'Filter by Date Range:',
+                                    filterByCustomer: 'Filter by Customer:',
+                                    allCustomers: 'All Customers',
+                                    filterByLocation: 'Filter by Location:',
+                                    allLocations: 'All Locations',
+                                    exportCsv: 'Export to CSV',
+                                    print: 'Print',
+                                    allTypes: 'All Types',
+                                    count: 'Count'
+                                },
+                                shipping: {
+                                    containerShippingDetails: 'Container Shipping Details',
+                                    editShipping: 'Edit Shipping for Serial:',
+                                    serialNo: 'Serial No',
+                                    type: 'Type',
+                                    size: 'Size (sqm)',
+                                    companyName: 'Company Name',
+                                    from: 'From',
+                                    dispatchTo: 'Dispatch To',
+                                    landDate: 'Land Date',
+                                    dispatchDate: 'Dispatch Date',
+                                    actions: 'Actions',
+                                    edit: 'Edit',
+                                    save: 'Save',
+                                    shippingDetails: 'Shipping Details',
+                                    shippingAnalytics: 'Shipping Analytics'
+                                },
+                                reports: {
+                                    shipmentsByDestination: 'Shipments by Destination',
+                                    shipmentsByContainerType: 'Shipments by Container Type'
+                                }
+                            }
+                        },
+                        ar: {
+                            translation: {
+                                login: { english: 'الإنجليزية', arabic: 'عربي' },
+                                index: {
+                                    cyms: 'CYMS',
+                                    dashboard: 'لوحة التحكم',
+                                    containers: 'الحاويات',
+                                    rentals: 'التأجير',
+                                    shipping: 'الشحن',
+                                    finance: 'المالية',
+                                    reports: 'التقارير',
+                                    logout: 'تسجيل الخروج',
+                                    filterByDateRange: 'تصفية حسب نطاق التاريخ:',
+                                    filterByCustomer: 'تصفية حسب العميل:',
+                                    allCustomers: 'جميع العملاء',
+                                    filterByLocation: 'تصفية حسب الموقع:',
+                                    allLocations: 'جميع المواقع',
+                                    exportCsv: 'تصدير إلى CSV',
+                                    print: 'طباعة',
+                                    allTypes: 'جميع الأنواع',
+                                    count: 'العدد'
+                                },
+                                shipping: {
+                                    containerShippingDetails: 'تفاصيل شحن الحاويات',
+                                    editShipping: 'تعديل الشحن للرقم التسلسلي:',
+                                    serialNo: 'الرقم التسلسلي',
+                                    type: 'النوع',
+                                    size: 'الحجم (متر مربع)',
+                                    companyName: 'اسم الشركة',
+                                    from: 'من',
+                                    dispatchTo: 'إرسال إلى',
+                                    landDate: 'تاريخ الوصول',
+                                    dispatchDate: 'تاريخ الإرسال',
+                                    actions: 'الإجراءات',
+                                    edit: 'تعديل',
+                                    save: 'حفظ',
+                                    shippingDetails: 'تفاصيل الشحن',
+                                    shippingAnalytics: 'تحليلات الشحن'
+                                },
+                                reports: {
+                                    shipmentsByDestination: 'الشحنات حسب الوجهة',
+                                    shipmentsByContainerType: 'الشحنات حسب نوع الحاوية'
+                                }
+                            }
+                        }
+                    }
+                }, function(err, t) {
+                    if (err) {
+                        console.error('i18next initialization failed:', err);
+                        return;
+                    }
+                    updateContent();
+                    if (typeof Chart !== 'undefined') {
+                        initializeCharts();
+                        loadShippingData();
+                        setupSidebarAutoHide();
+                        const sidebar = document.getElementById('sidebar');
+                        if (sidebar) {
+                            sidebar.classList.remove('active');
+                            console.log('Sidebar hidden on page load');
+                        } else {
+                            console.error('Sidebar element not found on page load');
+                        }
+                    } else {
+                        console.error('Chart.js is not loaded.');
+                    }
+                });
+            } else {
+                console.error('i18next is not loaded.');
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+```
