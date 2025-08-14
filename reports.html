@@ -1,818 +1,909 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reports - Container Yard Management</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link href="https://cdn.datatables.net/2.1.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-            margin: 0;
-            font-family: 'Arial', sans-serif;
-        }
-        .navbar {
-            background-color: #343a40;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1100;
-        }
-        .sidebar {
-            height: calc(100vh - 56px);
-            position: fixed;
-            top: 56px;
-            left: 0;
-            width: 200px;
-            background-color: #2c3e50;
-            padding-top: 20px;
-            z-index: 1000;
-            animation: slideIn 0.5s ease-out;
-        }
-        .sidebar a {
-            color: white;
-            padding: 15px 20px;
-            text-decoration: none;
-            display: block;
-            transition: background-color 0.3s;
-        }
-        .sidebar a:hover {
-            background-color: #34495e;
-        }
-        .content {
-            margin-left: 200px;
-            padding: 20px;
-            animation: fadeIn 0.8s ease-out;
-        }
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
-            background: linear-gradient(135deg, #ffffff, #f1f5f9);
-        }
-        .card:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        }
-        .card-icon {
-            font-size: 2.5rem;
-            color: #4bc0c0;
-            margin-bottom: 10px;
-        }
-        .card-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-        .card-value {
-            font-size: 2rem;
-            font-weight: 600;
-            color: #343a40;
-        }
-        .chart-container, .table-container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            animation: fadeIn 0.8s ease-out;
-        }
-        .filter-container {
-            margin-bottom: 15px;
-        }
-        .btn-export {
-            transition: transform 0.2s;
-        }
-        .btn-export:hover {
-            transform: scale(1.1);
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes slideIn {
-            from { transform: translateX(-100%); }
-            to { transform: translateX(0); }
-        }
-        @media print {
-            .navbar, .sidebar, .nav-tabs, .no-print {
-                display: none;
-            }
-            .content {
-                margin-left: 0;
-            }
-            .tab-content > .tab-pane {
-                display: block !important;
-                opacity: 1 !important;
-            }
-        }
-        @media (max-width: 768px) {
-            .sidebar {
-                left: -200px;
-                transition: left 0.3s ease;
-            }
-            .sidebar.active {
-                left: 0;
-            }
-            .content {
-                margin-left: 0;
-                transition: margin-left 0.3s ease;
-            }
-            .content.active {
-                margin-left: 200px;
-            }
-        }
-    </style>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <title>CYMS - Reports</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.datatables.net/2.1.7/js/dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/2.1.7/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
-    <script>
-        function logout() {
-            localStorage.removeItem('loggedIn');
-            window.location.href = 'login.html';
+    <script src="https://unpkg.com/i18next@23.15.1/dist/umd/i18next.min.js"></script>
+    <style>
+        [dir="rtl"] body { direction: rtl; font-family: 'Noto Naskh Arabic', sans-serif; }
+        [dir="rtl"] select, [dir="rtl"] input { text-align: right; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f7fa; }
+        header { background: linear-gradient(90deg, #007bff, #0056b3); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); z-index: 1100; position: relative; }
+        .sidebar {
+            position: fixed; top: 0; left: 0; height: 100%; width: 200px; background-color: #2c3e50; padding-top: 70px;
+            transform: translateX(-200px); transition: transform 0.3s ease-in-out; z-index: 1000;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
         }
-        function checkLogin() {
-            if (!localStorage.getItem('loggedIn')) {
-                window.location.href = 'login.html';
-            }
+        .sidebar.active { transform: translateX(0); }
+        .sidebar a { color: #ecf0f1; display: block; padding: 12px 20px; text-decoration: none; font-size: 1rem; transition: background 0.3s ease; }
+        .sidebar a:hover { background-color: #34495e; }
+        .sidebar-close-btn { position: absolute; top: 10px; right: 10px; color: #ecf0f1; font-size: 1.5rem; cursor: pointer; }
+        [dir="rtl"] .sidebar { left: auto; right: 0; transform: translateX(200px); box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2); }
+        [dir="rtl"] .sidebar.active { transform: translateX(0); }
+        [dir="rtl"] .sidebar-close-btn { right: auto; left: 10px; }
+        .main-content { padding: 2rem; }
+        .card { border: none; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        .chart-container {
+            position: relative; height: 250px; width: 100%; max-width: 100%; max-height: 250px; overflow: hidden;
+            background: #fff; border-radius: 10px; padding: 1rem; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); box-sizing: border-box;
         }
-        function toggleSidebar() {
-            document.querySelector('.sidebar').classList.toggle('active');
-            document.querySelector('.content').classList.toggle('active');
-        }
-        function getData() {
-            let containers = JSON.parse(localStorage.getItem('containers')) || [];
-            let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
-            return { containers, transactions };
-        }
-        function populateFilters(tab) {
-            let { containers, transactions } = getData();
-            let types = [...new Set(containers.map(c => c.type))];
-            let customers = [...new Set(transactions.map(t => t.customer))];
-            let locations = [...new Set(containers.map(c => c.shippingDetails.to))];
-            let typeSelect = document.getElementById(`typeFilter${tab}`);
-            let customerSelect = document.getElementById(`customerFilter${tab}`);
-            let locationSelect = document.getElementById(`locationFilter${tab}`);
-            if (typeSelect) {
-                typeSelect.innerHTML = '<option value="">All Types</option>';
-                types.forEach(type => {
-                    let option = document.createElement('option');
-                    option.value = type;
-                    option.text = type;
-                    typeSelect.appendChild(option);
-                });
-            }
-            customerSelect.innerHTML = '<option value="">All Customers</option>';
-            customers.forEach(customer => {
-                let option = document.createElement('option');
-                option.value = customer;
-                option.text = customer;
-                customerSelect.appendChild(option);
-            });
-            locationSelect.innerHTML = '<option value="">All Locations</option>';
-            locations.forEach(location => {
-                let option = document.createElement('option');
-                option.value = location;
-                option.text = location;
-                locationSelect.appendChild(option);
-            });
-        }
-        function applyFilters(tab, startDate, endDate, customer, location, type) {
-            let { containers, transactions } = getData();
-            if (startDate && endDate) {
-                containers = containers.filter(c => {
-                    const dispatchDate = c.shippingDetails?.dispatchDate;
-                    return dispatchDate && new Date(dispatchDate) >= startDate && new Date(dispatchDate) <= endDate;
-                });
-                transactions = transactions.filter(t => {
-                    const date = new Date(t.date);
-                    return date >= startDate && date <= endDate;
-                });
-            }
-            if (customer) {
-                containers = containers.filter(c => c.rentalInfo?.customer === customer);
-                transactions = transactions.filter(t => t.customer === customer);
-            }
-            if (location) {
-                containers = containers.filter(c => c.shippingDetails?.to === location);
-            }
-            if (type && tab !== 'Shipping') {
-                containers = containers.filter(c => c.type === type);
-                transactions = transactions.filter(t => {
-                    let container = containers.find(c => c.serialNo === t.serialNo);
-                    return container && container.type === type;
-                });
-            }
-            return { containers, transactions };
-        }
-        function displayContainerCards(startDate, endDate, customer, location, type) {
-            const totalYardSpace = 10000; // sqm
-            let { containers } = applyFilters('Containers', startDate, endDate, customer, location, type);
-            let totalContainers = containers.length;
-            let available = containers.filter(c => c.status === 'available').length;
-            let rented = containers.filter(c => c.status === 'rented').length;
-            let totalSpace = containers.reduce((sum, c) => sum + (c.size || 0), 0);
-            document.getElementById('totalContainers').innerText = totalContainers;
-            document.getElementById('availableContainers').innerText = available;
-            document.getElementById('rentedContainers').innerText = rented;
-            document.getElementById('totalSpace').innerText = totalSpace.toFixed(0);
-        }
-        function displayContainerTable(startDate, endDate, customer, location, type) {
-            let { containers } = applyFilters('Containers', startDate, endDate, customer, location, type);
-            let table = document.getElementById('containerTable');
-            let tbody = table.getElementsByTagName('tbody')[0];
-            tbody.innerHTML = '';
-            containers.forEach(c => {
-                let row = tbody.insertRow();
-                row.insertCell().innerText = c.serialNo;
-                row.insertCell().innerText = c.type;
-                row.insertCell().innerText = c.size.toFixed(1);
-                row.insertCell().innerText = c.status;
-                row.insertCell().innerText = c.dailyRentalCost.toFixed(2);
-            });
-            if ($.fn.DataTable.isDataTable('#containerTable')) {
-                $('#containerTable').DataTable().destroy();
-            }
-            $('#containerTable').DataTable({
-                responsive: true,
-                pageLength: 10,
-                order: [[0, 'asc']],
-                columnDefs: [{ targets: '_all', searchable: true, orderable: true }]
-            });
-        }
-        function displayContainerCharts(startDate, endDate, customer, location, type) {
-            let { containers } = applyFilters('Containers', startDate, endDate, customer, location, type);
-            let available = containers.filter(c => c.status === 'available').length;
-            let rented = containers.filter(c => c.status === 'rented').length;
-            new Chart(document.getElementById('containerStatusPie'), {
-                type: 'pie',
-                data: {
-                    labels: ['Available', 'Rented'],
-                    datasets: [{ data: [available, rented], backgroundColor: ['#36a2eb', '#ff6384'] }]
-                },
-                options: { responsive: true, plugins: { legend: { position: 'top' } } }
-            });
-            let typeMap = {};
-            containers.forEach(c => { typeMap[c.type] = (typeMap[c.type] || 0) + 1; });
-            new Chart(document.getElementById('containerTypeBar'), {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(typeMap),
-                    datasets: [{ label: 'Count', data: Object.values(typeMap), backgroundColor: '#4bc0c0' }]
-                },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
-            });
-            let locationMap = {};
-            containers.forEach(c => {
-                let loc = c.shippingDetails.to;
-                locationMap[loc] = (locationMap[loc] || 0) + 1;
-            });
-            new Chart(document.getElementById('containerLocationDoughnut'), {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(locationMap),
-                    datasets: [{ data: Object.values(locationMap), backgroundColor: ['#36a2eb', '#ff6384', '#4bc0c0', '#ffce56', '#9966ff', '#ff9f40'] }]
-                },
-                options: { responsive: true, plugins: { legend: { position: 'top' } } }
-            });
-        }
-        function displayRentalCards(startDate, endDate, customer, location, type) {
-            let { containers, transactions } = applyFilters('Rentals', startDate, endDate, customer, location, type);
-            let rentedContainers = containers.filter(c => c.status === 'rented');
-            let totalRentals = rentedContainers.length;
-            let activeRentals = rentedContainers.filter(c => c.rentalInfo && new Date(c.rentalInfo.startDate) <= new Date()).length;
-            let totalRevenue = transactions.reduce((sum, t) => sum + t.amount, 0);
-            let durations = rentedContainers.map(c => {
-                if (c.rentalInfo) {
-                    let start = new Date(c.rentalInfo.startDate);
-                    let end = new Date();
-                    return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-                }
-                return 0;
-            });
-            let avgDuration = durations.length ? (durations.reduce((a, b) => a + b, 0) / durations.length).toFixed(1) : 0;
-            document.getElementById('totalRentals').innerText = totalRentals;
-            document.getElementById('activeRentals').innerText = activeRentals;
-            document.getElementById('rentalRevenue').innerText = totalRevenue.toFixed(2);
-            document.getElementById('avgRentalDuration').innerText = avgDuration;
-        }
-        function displayRentalTable(startDate, endDate, customer, location, type) {
-            let { containers, transactions } = applyFilters('Rentals', startDate, endDate, customer, location, type);
-            let rentedContainers = containers.filter(c => c.status === 'rented');
-            let table = document.getElementById('rentalTable');
-            let tbody = table.getElementsByTagName('tbody')[0];
-            tbody.innerHTML = '';
-            rentedContainers.forEach(c => {
-                let transaction = transactions.find(t => t.serialNo === c.serialNo);
-                let row = tbody.insertRow();
-                row.insertCell().innerText = c.serialNo;
-                row.insertCell().innerText = c.rentalInfo?.customer || 'N/A';
-                row.insertCell().innerText = c.rentalInfo ? new Date(c.rentalInfo.startDate).toLocaleDateString() : 'N/A';
-                let duration = c.rentalInfo ? Math.ceil((new Date() - new Date(c.rentalInfo.startDate)) / (1000 * 60 * 60 * 24)) : 0;
-                row.insertCell().innerText = duration;
-                row.insertCell().innerText = transaction ? transaction.amount.toFixed(2) : '0.00';
-            });
-            if ($.fn.DataTable.isDataTable('#rentalTable')) {
-                $('#rentalTable').DataTable().destroy();
-            }
-            $('#rentalTable').DataTable({
-                responsive: true,
-                pageLength: 10,
-                order: [[0, 'asc']],
-                columnDefs: [{ targets: '_all', searchable: true, orderable: true }]
-            });
-        }
-        function displayRentalCharts(startDate, endDate, customer, location, type) {
-            let { transactions } = applyFilters('Rentals', startDate, endDate, customer, location, type);
-            let customerMap = {};
-            transactions.forEach(t => {
-                customerMap[t.customer] = (customerMap[t.customer] || 0) + t.amount;
-            });
-            new Chart(document.getElementById('rentalCustomerBar'), {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(customerMap),
-                    datasets: [{ label: 'Revenue by Customer', data: Object.values(customerMap), backgroundColor: '#ffce56' }]
-                },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
-            });
-            let revenueMap = {};
-            transactions.forEach(t => {
-                let date = new Date(t.date).toLocaleDateString();
-                revenueMap[date] = (revenueMap[date] || 0) + t.amount;
-            });
-            new Chart(document.getElementById('rentalRevenueLine'), {
-                type: 'line',
-                data: {
-                    labels: Object.keys(revenueMap),
-                    datasets: [{ label: 'Rental Revenue', data: Object.values(revenueMap), borderColor: '#4bc0c0', fill: false }]
-                },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
-            });
-        }
-        function displayShippingCards(startDate, endDate, customer, location) {
-            let { containers } = applyFilters('Shipping', startDate, endDate, customer, location);
-            let totalShipments = containers.filter(c => c.shippingDetails).length;
-            let todayStr = new Date().toISOString().split('T')[0];
-            let dispatchedToday = containers.filter(c => c.shippingDetails && c.shippingDetails.dispatchDate === todayStr).length;
-            let transitTimes = containers.map(c => {
-                if (c.shippingDetails && c.shippingDetails.landDate && c.shippingDetails.dispatchDate) {
-                    return (new Date(c.shippingDetails.dispatchDate) - new Date(c.shippingDetails.landDate)) / (1000 * 60 * 60 * 24);
-                }
-                return 0;
-            }).filter(t => t > 0);
-            let avgTransitTime = transitTimes.length ? (transitTimes.reduce((a, b) => a + b, 0) / transitTimes.length).toFixed(1) : 0;
-            let inTransit = containers.filter(c => c.shippingDetails && new Date(c.shippingDetails.dispatchDate) > new Date()).length;
-            document.getElementById('totalShipments').innerText = totalShipments;
-            document.getElementById('dispatchedToday').innerText = dispatchedToday;
-            document.getElementById('avgTransitTime').innerText = avgTransitTime;
-            document.getElementById('inTransit').innerText = inTransit;
-        }
-        function displayShippingTable(startDate, endDate, customer, location) {
-            let { containers } = applyFilters('Shipping', startDate, endDate, customer, location);
-            let table = document.getElementById('shippingTable');
-            let tbody = table.getElementsByTagName('tbody')[0];
-            tbody.innerHTML = '';
-            containers.forEach(c => {
-                if (c.shippingDetails) {
-                    let row = tbody.insertRow();
-                    row.insertCell().innerText = c.serialNo;
-                    row.insertCell().innerText = c.shippingDetails.from;
-                    row.insertCell().innerText = c.shippingDetails.to;
-                    row.insertCell().innerText = c.shippingDetails.landDate;
-                    row.insertCell().innerText = c.shippingDetails.dispatchDate;
-                }
-            });
-            if ($.fn.DataTable.isDataTable('#shippingTable')) {
-                $('#shippingTable').DataTable().destroy();
-            }
-            $('#shippingTable').DataTable({
-                responsive: true,
-                pageLength: 10,
-                order: [[0, 'asc']],
-                columnDefs: [{ targets: '_all', searchable: true, orderable: true }]
-            });
-        }
-        function displayShippingCharts(startDate, endDate, customer, location) {
-            let { containers } = applyFilters('Shipping', startDate, endDate, customer, location);
-            let destinationMap = {};
-            containers.forEach(c => {
-                if (c.shippingDetails) {
-                    let dest = c.shippingDetails.to;
-                    destinationMap[dest] = (destinationMap[dest] || 0) + 1;
-                }
-            });
-            new Chart(document.getElementById('shippingDestinationDoughnut'), {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(destinationMap),
-                    datasets: [{ data: Object.values(destinationMap), backgroundColor: ['#36a2eb', '#ff6384', '#4bc0c0', '#ffce56', '#9966ff', '#ff9f40'] }]
-                },
-                options: { responsive: true, plugins: { legend: { position: 'top' } } }
-            });
-            let typeMap = {};
-            containers.forEach(c => {
-                if (c.shippingDetails) {
-                    if (!typeMap[c.type]) {
-                        typeMap[c.type] = { shipped: 0 };
-                    }
-                    typeMap[c.type].shipped++;
-                }
-            });
-            new Chart(document.getElementById('shippingTypeBar'), {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(typeMap),
-                    datasets: [{ label: 'Shipped', data: Object.values(typeMap).map(t => t.shipped), backgroundColor: '#4bc0c0', stack: 'Stack 0' }]
-                },
-                options: { responsive: true, scales: { y: { beginAtZero: true, stacked: true }, x: { stacked: true } } }
-            });
-        }
-        function exportTableToCSV(tableId, filename) {
-            let table = document.getElementById(tableId);
-            let rows = Array.from(table.querySelectorAll('tr'));
-            let csv = rows.map(row => {
-                let cols = Array.from(row.querySelectorAll('th, td')).map(col => `"${col.innerText.replace(/"/g, '""')}"`);
-                return cols.join(',');
-            }).join('\n');
-            let blob = new Blob([csv], { type: 'text/csv' });
-            let link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = filename;
-            link.click();
-        }
-        function printCurrentTab() {
-            window.print();
-        }
-        window.onload = function() {
-            checkLogin();
-            ['Containers', 'Rentals', 'Shipping'].forEach(tab => {
-                populateFilters(tab);
-                flatpickr(`#dateRange${tab}`, {
-                    mode: 'range',
-                    dateFormat: 'Y-m-d',
-                    onChange: function(selectedDates) {
-                        let startDate = selectedDates[0] ? new Date(selectedDates[0]) : null;
-                        let endDate = selectedDates[1] ? new Date(selectedDates[1]) : null;
-                        let customer = document.getElementById(`customerFilter${tab}`).value;
-                        let location = document.getElementById(`locationFilter${tab}`).value;
-                        let type = document.getElementById(`typeFilter${tab}`)?.value || '';
-                        if (tab === 'Containers') {
-                            displayContainerCards(startDate, endDate, customer, location, type);
-                            displayContainerTable(startDate, endDate, customer, location, type);
-                            displayContainerCharts(startDate, endDate, customer, location, type);
-                        } else if (tab === 'Rentals') {
-                            displayRentalCards(startDate, endDate, customer, location, type);
-                            displayRentalTable(startDate, endDate, customer, location, type);
-                            displayRentalCharts(startDate, endDate, customer, location, type);
-                        } else if (tab === 'Shipping') {
-                            displayShippingCards(startDate, endDate, customer, location);
-                            displayShippingTable(startDate, endDate, customer, location);
-                            displayShippingCharts(startDate, endDate, customer, location);
-                        }
-                    }
-                });
-                document.getElementById(`customerFilter${tab}`).addEventListener('change', function() {
-                    let startDate = flatpickr(`#dateRange${tab}`).selectedDates[0] ? new Date(flatpickr(`#dateRange${tab}`).selectedDates[0]) : null;
-                    let endDate = flatpickr(`#dateRange${tab}`).selectedDates[1] ? new Date(flatpickr(`#dateRange${tab}`).selectedDates[1]) : null;
-                    let customer = this.value;
-                    let location = document.getElementById(`locationFilter${tab}`).value;
-                    let type = document.getElementById(`typeFilter${tab}`)?.value || '';
-                    if (tab === 'Containers') {
-                        displayContainerCards(startDate, endDate, customer, location, type);
-                        displayContainerTable(startDate, endDate, customer, location, type);
-                        displayContainerCharts(startDate, endDate, customer, location, type);
-                    } else if (tab === 'Rentals') {
-                        displayRentalCards(startDate, endDate, customer, location, type);
-                        displayRentalTable(startDate, endDate, customer, location, type);
-                        displayRentalCharts(startDate, endDate, customer, location, type);
-                    } else if (tab === 'Shipping') {
-                        displayShippingCards(startDate, endDate, customer, location);
-                        displayShippingTable(startDate, endDate, customer, location);
-                        displayShippingCharts(startDate, endDate, customer, location);
-                    }
-                });
-                document.getElementById(`locationFilter${tab}`).addEventListener('change', function() {
-                    let startDate = flatpickr(`#dateRange${tab}`).selectedDates[0] ? new Date(flatpickr(`#dateRange${tab}`).selectedDates[0]) : null;
-                    let endDate = flatpickr(`#dateRange${tab}`).selectedDates[1] ? new Date(flatpickr(`#dateRange${tab}`).selectedDates[1]) : null;
-                    let customer = document.getElementById(`customerFilter${tab}`).value;
-                    let location = this.value;
-                    let type = document.getElementById(`typeFilter${tab}`)?.value || '';
-                    if (tab === 'Containers') {
-                        displayContainerCards(startDate, endDate, customer, location, type);
-                        displayContainerTable(startDate, endDate, customer, location, type);
-                        displayContainerCharts(startDate, endDate, customer, location, type);
-                    } else if (tab === 'Rentals') {
-                        displayRentalCards(startDate, endDate, customer, location, type);
-                        displayRentalTable(startDate, endDate, customer, location, type);
-                        displayRentalCharts(startDate, endDate, customer, location, type);
-                    } else if (tab === 'Shipping') {
-                        displayShippingCards(startDate, endDate, customer, location);
-                        displayShippingTable(startDate, endDate, customer, location);
-                        displayShippingCharts(startDate, endDate, customer, location);
-                    }
-                });
-                if (document.getElementById(`typeFilter${tab}`)) {
-                    document.getElementById(`typeFilter${tab}`).addEventListener('change', function() {
-                        let startDate = flatpickr(`#dateRange${tab}`).selectedDates[0] ? new Date(flatpickr(`#dateRange${tab}`).selectedDates[0]) : null;
-                        let endDate = flatpickr(`#dateRange${tab}`).selectedDates[1] ? new Date(flatpickr(`#dateRange${tab}`).selectedDates[1]) : null;
-                        let customer = document.getElementById(`customerFilter${tab}`).value;
-                        let location = document.getElementById(`locationFilter${tab}`).value;
-                        let type = this.value;
-                        if (tab === 'Containers') {
-                            displayContainerCards(startDate, endDate, customer, location, type);
-                            displayContainerTable(startDate, endDate, customer, location, type);
-                            displayContainerCharts(startDate, endDate, customer, location, type);
-                        } else if (tab === 'Rentals') {
-                            displayRentalCards(startDate, endDate, customer, location, type);
-                            displayRentalTable(startDate, endDate, customer, location, type);
-                            displayRentalCharts(startDate, endDate, customer, location, type);
-                        }
-                    });
-                }
-            });
-            displayContainerCards();
-            displayContainerTable();
-            displayContainerCharts();
-            displayRentalCards();
-            displayRentalTable();
-            displayRentalCharts();
-            displayShippingCards();
-            displayShippingTable();
-            displayShippingCharts();
-        };
-    </script>
+        .chart-container canvas { width: 100% !important; height: 100% !important; max-width: 100%; max-height: 100%; }
+        .lang-select-container { display: flex; align-items: center; gap: 10px; }
+        h2, h3, h4 { color: #2c3e50; font-weight: 600; }
+        .btn-primary { background-color: #007bff; border: none; border-radius: 5px; transition: background-color 0.2s; }
+        .btn-primary:hover { background-color: #0056b3; }
+        .table { background: #fff; border-radius: 10px; overflow: hidden; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .card-body { display: flex; align-items: center; gap: 1rem; }
+        .card-icon { font-size: 2rem; color: #007bff; }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">CYMS</a>
-            <button class="navbar-toggler no-print" type="button" onclick="toggleSidebar()">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+    <header class="bg-primary text-white p-3">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-light toggle-btn" onclick="toggleSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h1 class="h3 mb-0" data-i18n="index.cyms">CYMS</h1>
+            </div>
+            <div class="lang-select-container">
+                <i class="bi bi-translate"></i>
+                <select class="form-select w-auto" onchange="changeLanguage(this.value)">
+                    <option value="en">English</option>
+                    <option value="ar">عربي</option>
+                </select>
+            </div>
         </div>
+    </header>
+    <nav class="sidebar" id="sidebar">
+        <i class="bi bi-x sidebar-close-btn"></i>
+        <a href="index.html" data-i18n="index.dashboard">Dashboard</a>
+        <a href="container_management.html" data-i18n="index.containers">Containers</a>
+        <a href="rental_management.html" data-i18n="index.rentals">Rentals</a>
+        <a href="shipping_management.html" data-i18n="index.shipping">Shipping</a>
+        <a href="financial_management.html" data-i18n="index.finance">Finance</a>
+        <a href="reports.html" data-i18n="index.reports">Reports</a>
+        <a href="#" onclick="logout()" data-i18n="index.logout">Logout</a>
     </nav>
-    <div class="sidebar">
-        <a href="index.html">Dashboard</a>
-        <a href="container_management.html">Containers</a>
-        <a href="rental_management.html">Rentals</a>
-        <a href="shipping_management.html">Shipping</a>
-        <a href="financial_management.html">Finance</a>
-        <a href="reports.html">Reports</a>
-        <a href="#" onclick="logout()">Logout</a>
-    </div>
-    <div class="content">
-        <h1 class="mb-4">Reports <button class="btn btn-secondary btn-sm btn-export no-print" onclick="printCurrentTab()">Print Current Report</button></h1>
-        <ul class="nav nav-tabs no-print" id="reportTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="containers-tab" data-bs-toggle="tab" data-bs-target="#containers" type="button" role="tab">Containers</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="rentals-tab" data-bs-toggle="tab" data-bs-target="#rentals" type="button" role="tab">Rentals</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping" type="button" role="tab">Shipping</button>
-            </li>
-        </ul>
-        <div class="tab-content" id="reportTabsContent">
-            <div class="tab-pane fade show active" id="containers" role="tabpanel">
-                <div class="filter-container no-print">
-                    <div class="row g-2">
+    <main class="container-fluid main-content" id="main-content">
+        <section class="mb-5">
+            <div class="section-header">
+                <h2 class="h4" data-i18n="reports.reports">Reports</h2>
+                <button class="btn btn-primary" data-i18n="reports.printCurrent">Print Current Report</button>
+            </div>
+            <ul class="nav nav-tabs mb-4">
+                <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#containers" data-i18n="index.containers">Containers</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#rentals" data-i18n="index.rentals">Rentals</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#shipping" data-i18n="index.shipping">Shipping</a></li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="containers">
+                    <div class="row g-4 mb-4">
                         <div class="col-md-3">
-                            <label for="typeFilterContainers" class="form-label">Filter by Container Type:</label>
-                            <select id="typeFilterContainers" class="form-select"></select>
+                            <label class="form-label fw-bold" data-i18n="reports.filterByContainerType">Filter by Container Type:</label>
+                            <select class="form-select">
+                                <option data-i18n="index.allTypes">All Types</option>
+                            </select>
                         </div>
                         <div class="col-md-3">
-                            <label for="dateRangeContainers" class="form-label">Filter by Date Range:</label>
-                            <input type="text" id="dateRangeContainers" class="form-control" placeholder="Select date range">
+                            <label class="form-label fw-bold" data-i18n="index.filterByDateRange">Filter by Date Range:</label>
+                            <div class="d-flex gap-2">
+                                <input type="date" class="form-control">
+                                <input type="date" class="form-control">
+                            </div>
                         </div>
                         <div class="col-md-3">
-                            <label for="customerFilterContainers" class="form-label">Filter by Customer:</label>
-                            <select id="customerFilterContainers" class="form-select"></select>
+                            <label class="form-label fw-bold" data-i18n="index.filterByCustomer">Filter by Customer:</label>
+                            <select class="form-select">
+                                <option data-i18n="index.allCustomers">All Customers</option>
+                            </select>
                         </div>
                         <div class="col-md-3">
-                            <label for="locationFilterContainers" class="form-label">Filter by Location:</label>
-                            <select id="locationFilterContainers" class="form-select"></select>
+                            <label class="form-label fw-bold" data-i18n="index.filterByLocation">Filter by Location:</label>
+                            <select class="form-select">
+                                <option data-i18n="index.allLocations">All Locations</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <i class="bi bi-boxes card-icon"></i>
+                                    <div>
+                                        <h4 class="card-title fs-6" data-i18n="index.totalContainers">Total Containers</h4>
+                                        <p class="card-text fw-bold fs-5" id="total-containers">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <i class="bi bi-box-seam card-icon"></i>
+                                    <div>
+                                        <h4 class="card-title fs-6" data-i18n="index.availableContainers">Available Containers</h4>
+                                        <p class="card-text fw-bold fs-5" id="available-containers">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <i class="bi bi-box-seam-fill card-icon"></i>
+                                    <div>
+                                        <h4 class="card-title fs-6" data-i18n="index.rentedContainers">Rented Containers</h4>
+                                        <p class="card-text fw-bold fs-5" id="rented-containers">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <i class="bi bi-rulers card-icon"></i>
+                                    <div>
+                                        <h4 class="card-title fs-6" data-i18n="index.availableSpace">Total Space (sqm)</h4>
+                                        <p class="card-text fw-bold fs-5" id="total-space">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-header">
+                        <h3 class="h5" data-i18n="reports.containerDetails">Container Details</h3>
+                        <button class="btn btn-primary" data-i18n="index.exportCsv">Export to CSV</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="container-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th data-i18n="container.serialNo">Serial No</th>
+                                    <th data-i18n="container.type">Type</th>
+                                    <th data-i18n="container.size">Size (sqm)</th>
+                                    <th data-i18n="container.status">Status</th>
+                                    <th data-i18n="container.dailyCost">Daily Cost ($)</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div class="section-header">
+                        <h3 class="h5" data-i18n="reports.containerAnalytics">Container Analytics</h3>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-lg-4">
+                            <div class="chart-container">
+                                <h4 class="fs-6 mb-3" data-i18n="reports.statusDistribution">Status Distribution</h4>
+                                <canvas id="status-distribution-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="chart-container">
+                                <h4 class="fs-6 mb-3" data-i18n="index.containerTypes">Container Types</h4>
+                                <canvas id="container-types-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="chart-container">
+                                <h4 class="fs-6 mb-3" data-i18n="index.containersByLocation">Containers by Location</h4>
+                                <canvas id="containers-by-location-chart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="row g-4">
-                    <div class="col-md-3">
-                        <div class="card text-center p-3">
-                            <i class="fas fa-boxes card-icon"></i>
-                            <h5 class="card-title">Total Containers</h5>
-                            <p class="card-value" id="totalContainers">0</p>
+                <div class="tab-pane fade" id="rentals">
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" data-i18n="reports.filterByContainerType">Filter by Container Type:</label>
+                            <select class="form-select">
+                                <option data-i18n="index.allTypes">All Types</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" data-i18n="index.filterByDateRange">Filter by Date Range:</label>
+                            <div class="d-flex gap-2">
+                                <input type="date" class="form-control">
+                                <input type="date" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" data-i18n="index.filterByCustomer">Filter by Customer:</label>
+                            <select class="form-select">
+                                <option data-i18n="index.allCustomers">All Customers</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" data-i18n="index.filterByLocation">Filter by Location:</label>
+                            <select class="form-select">
+                                <option data-i18n="index.allLocations">All Locations</option>
+                            </select>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card text-center p-3">
-                            <i class="fas fa-check-circle card-icon"></i>
-                            <h5 class="card-title">Available Containers</h5>
-                            <p class="card-value" id="availableContainers">0</p>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <i class="bi bi-box-seam-fill card-icon"></i>
+                                    <div>
+                                        <h4 class="card-title fs-6" data-i18n="reports.totalRentals">Total Rentals</h4>
+                                        <p class="card-text fw-bold fs-5" id="total-rentals">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <i class="bi bi-box-seam card-icon"></i>
+                                    <div>
+                                        <h4 class="card-title fs-6" data-i18n="reports.activeRentals">Active Rentals</h4>
+                                        <p class="card-text fw-bold fs-5" id="active-rentals">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <i class="bi bi-currency-dollar card-icon"></i>
+                                    <div>
+                                        <h4 class="card-title fs-6" data-i18n="index.totalRevenue">Total Revenue ($)</h4>
+                                        <p class="card-text fw-bold fs-5" id="total-revenue">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <i class="bi bi-clock card-icon"></i>
+                                    <div>
+                                        <h4 class="card-title fs-6" data-i18n="reports.avgDuration">Avg Duration (days)</h4>
+                                        <p class="card-text fw-bold fs-5" id="avg-duration">0</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card text-center p-3">
-                            <i class="fas fa-truck-loading card-icon"></i>
-                            <h5 class="card-title">Rented Containers</h5>
-                            <p class="card-value" id="rentedContainers">0</p>
-                        </div>
+                    <div class="section-header">
+                        <h3 class="h5" data-i18n="reports.rentalDetails">Rental Details</h3>
+                        <button class="btn btn-primary" data-i18n="index.exportCsv">Export to CSV</button>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card text-center p-3">
-                            <i class="fas fa-ruler-combined card-icon"></i>
-                            <h5 class="card-title">Total Space (sqm)</h5>
-                            <p class="card-value" id="totalSpace">0</p>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="rentals-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th data-i18n="rental.serialNo">Serial No</th>
+                                    <th data-i18n="rental.customer">Customer</th>
+                                    <th data-i18n="rental.startDate">Start Date</th>
+                                    <th data-i18n="reports.duration">Duration (days)</th>
+                                    <th data-i18n="rental.amount">Amount ($)</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div class="section-header">
+                        <h3 class="h5" data-i18n="reports.rentalAnalytics">Rental Analytics</h3>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-lg-6">
+                            <div class="chart-container">
+                                <h4 class="fs-6 mb-3" data-i18n="rental.revenueByCustomer">Revenue by Customer</h4>
+                                <canvas id="revenue-customer-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="chart-container">
+                                <h4 class="fs-6 mb-3" data-i18n="rental.revenueOverTime">Rental Revenue Over Time</h4>
+                                <canvas id="revenue-over-time-chart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <h2 class="mt-5">Container Details <button class="btn btn-secondary btn-sm btn-export no-print" onclick="exportTableToCSV('containerTable', 'containers_report.csv')">Export to CSV</button></h2>
-                <div class="table-container">
-                    <table class="table table-striped table-hover" id="containerTable">
-                        <thead class="table-dark">
-                            <tr><th>Serial No</th><th>Type</th><th>Size (sqm)</th><th>Status</th><th>Daily Cost ($)</th></tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-                <h2 class="mt-5">Container Analytics</h2>
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <div class="chart-container">
-                            <h3>Status Distribution</h3>
-                            <canvas id="containerStatusPie"></canvas>
+                <div class="tab-pane fade" id="shipping">
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" data-i18n="index.filterByDateRange">Filter by Date Range:</label>
+                            <div class="d-flex gap-2">
+                                <input type="date" class="form-control">
+                                <input type="date" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" data-i18n="index.filterByCustomer">Filter by Customer:</label>
+                            <select class="form-select">
+                                <option data-i18n="index.allCustomers">All Customers</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" data-i18n="index.filterByLocation">Filter by Location:</label>
+                            <select class="form-select">
+                                <option data-i18n="index.allLocations">All Locations</option>
+                            </select>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="chart-container">
-                            <h3>Container Types</h3>
-                            <canvas id="containerTypeBar"></canvas>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <i class="bi bi-truck card-icon"></i>
+                                    <div>
+                                        <h4 class="card-title fs-6" data-i18n="reports.totalShipments">Total Shipments</h4>
+                                        <p class="card-text fw-bold fs-5" id="total-shipments">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <i class="bi bi-truck card-icon"></i>
+                                    <div>
+                                        <h4 class="card-title fs-6" data-i18n="reports.dispatchedToday">Dispatched Today</h4>
+                                        <p class="card-text fw-bold fs-5" id="dispatched-today">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <i class="bi bi-clock card-icon"></i>
+                                    <div>
+                                        <h4 class="card-title fs-6" data-i18n="reports.avgTransitTime">Avg Transit Time (days)</h4>
+                                        <p class="card-text fw-bold fs-5" id="avg-transit-time">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <i class="bi bi-truck card-icon"></i>
+                                    <div>
+                                        <h4 class="card-title fs-6" data-i18n="reports.inTransit">In Transit</h4>
+                                        <p class="card-text fw-bold fs-5" id="in-transit">0</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="chart-container">
-                            <h3>Containers by Location</h3>
-                            <canvas id="containerLocationDoughnut"></canvas>
+                    <div class="section-header">
+                        <h3 class="h5" data-i18n="reports.shippingDetails">Shipping Details</h3>
+                        <button class="btn btn-primary" data-i18n="index.exportCsv">Export to CSV</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="shipping-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th data-i18n="shipping.serialNo">Serial No</th>
+                                    <th data-i18n="shipping.from">From</th>
+                                    <th data-i18n="shipping.to">To</th>
+                                    <th data-i18n="shipping.landDate">Land Date</th>
+                                    <th data-i18n="shipping.dispatchDate">Dispatch Date</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div class="section-header">
+                        <h3 class="h5" data-i18n="reports.shippingAnalytics">Shipping Analytics</h3>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-lg-6">
+                            <div class="chart-container">
+                                <h4 class="fs-6 mb-3" data-i18n="reports.shipmentsByDestination">Shipments by Destination</h4>
+                                <canvas id="shipments-destination-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="chart-container">
+                                <h4 class="fs-6 mb-3" data-i18n="reports.shipmentsByContainerType">Shipments by Container Type</h4>
+                                <canvas id="shipments-container-type-chart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="tab-pane fade" id="rentals" role="tabpanel">
-                <div class="filter-container no-print">
-                    <div class="row g-2">
-                        <div class="col-md-3">
-                            <label for="typeFilterRentals" class="form-label">Filter by Container Type:</label>
-                            <select id="typeFilterRentals" class="form-select"></select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="dateRangeRentals" class="form-label">Filter by Date Range:</label>
-                            <input type="text" id="dateRangeRentals" class="form-control" placeholder="Select date range">
-                        </div>
-                        <div class="col-md-3">
-                            <label for="customerFilterRentals" class="form-label">Filter by Customer:</label>
-                            <select id="customerFilterRentals" class="form-select"></select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="locationFilterRentals" class="form-label">Filter by Location:</label>
-                            <select id="locationFilterRentals" class="form-select"></select>
-                        </div>
-                    </div>
-                </div>
-                <div class="row g-4">
-                    <div class="col-md-3">
-                        <div class="card text-center p-3">
-                            <i class="fas fa-handshake card-icon"></i>
-                            <h5 class="card-title">Total Rentals</h5>
-                            <p class="card-value" id="totalRentals">0</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center p-3">
-                            <i class="fas fa-play-circle card-icon"></i>
-                            <h5 class="card-title">Active Rentals</h5>
-                            <p class="card-value" id="activeRentals">0</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center p-3">
-                            <i class="fas fa-dollar-sign card-icon"></i>
-                            <h5 class="card-title">Total Revenue ($)</h5>
-                            <p class="card-value" id="rentalRevenue">0</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center p-3">
-                            <i class="fas fa-clock card-icon"></i>
-                            <h5 class="card-title">Avg Duration (days)</h5>
-                            <p class="card-value" id="avgRentalDuration">0</p>
-                        </div>
-                    </div>
-                </div>
-                <h2 class="mt-5">Rental Details <button class="btn btn-secondary btn-sm btn-export no-print" onclick="exportTableToCSV('rentalTable', 'rentals_report.csv')">Export to CSV</button></h2>
-                <div class="table-container">
-                    <table class="table table-striped table-hover" id="rentalTable">
-                        <thead class="table-dark">
-                            <tr><th>Serial No</th><th>Customer</th><th>Start Date</th><th>Duration (days)</th><th>Amount ($)</th></tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-                <h2 class="mt-5">Rental Analytics</h2>
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="chart-container">
-                            <h3>Revenue by Customer</h3>
-                            <canvas id="rentalCustomerBar"></canvas>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="chart-container">
-                            <h3>Rental Revenue Over Time</h3>
-                            <canvas id="rentalRevenueLine"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="tab-pane fade" id="shipping" role="tabpanel">
-                <div class="filter-container no-print">
-                    <div class="row g-2">
-                        <div class="col-md-4">
-                            <label for="dateRangeShipping" class="form-label">Filter by Date Range:</label>
-                            <input type="text" id="dateRangeShipping" class="form-control" placeholder="Select date range">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="customerFilterShipping" class="form-label">Filter by Customer:</label>
-                            <select id="customerFilterShipping" class="form-select"></select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="locationFilterShipping" class="form-label">Filter by Location:</label>
-                            <select id="locationFilterShipping" class="form-select"></select>
-                        </div>
-                    </div>
-                </div>
-                <div class="row g-4">
-                    <div class="col-md-3">
-                        <div class="card text-center p-3">
-                            <i class="fas fa-ship card-icon"></i>
-                            <h5 class="card-title">Total Shipments</h5>
-                            <p class="card-value" id="totalShipments">0</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center p-3">
-                            <i class="fas fa-shipping-fast card-icon"></i>
-                            <h5 class="card-title">Dispatched Today</h5>
-                            <p class="card-value" id="dispatchedToday">0</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center p-3">
-                            <i class="fas fa-clock card-icon"></i>
-                            <h5 class="card-title">Avg Transit Time (days)</h5>
-                            <p class="card-value" id="avgTransitTime">0</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center p-3">
-                            <i class="fas fa-truck-moving card-icon"></i>
-                            <h5 class="card-title">In Transit</h5>
-                            <p class="card-value" id="inTransit">0</p>
-                        </div>
-                    </div>
-                </div>
-                <h2 class="mt-5">Shipping Details <button class="btn btn-secondary btn-sm btn-export no-print" onclick="exportTableToCSV('shippingTable', 'shipping_report.csv')">Export to CSV</button></h2>
-                <div class="table-container">
-                    <table class="table table-striped table-hover" id="shippingTable">
-                        <thead class="table-dark">
-                            <tr><th>Serial No</th><th>From</th><th>To</th><th>Land Date</th><th>Dispatch Date</th></tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-                <h2 class="mt-5">Shipping Analytics</h2>
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="chart-container">
-                            <h3>Shipments by Destination</h3>
-                            <canvas id="shippingDestinationDoughnut"></canvas>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="chart-container">
-                            <h3>Shipments by Container Type</h3>
-                            <canvas id="shippingTypeBar"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        </section>
+    </main>
+
+    <script>
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+
+        let charts = {};
+
+        function updateContent() {
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                element.textContent = i18next.t(key);
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                element.placeholder = i18next.t(key);
+            });
+            document.documentElement.setAttribute('dir', i18next.language === 'ar' ? 'rtl' : 'ltr');
+            document.documentElement.setAttribute('lang', i18next.language);
+        }
+
+        function changeLanguage(lng) {
+            if (typeof i18next === 'undefined') {
+                console.error('Cannot change language: i18next is not loaded.');
+                return;
+            }
+            i18next.changeLanguage(lng, function(err, t) {
+                if (err) {
+                    console.error('Language change failed:', err);
+                    return;
+                }
+                console.log('Changing language to:', lng);
+                localStorage.setItem('language', lng);
+                updateContent();
+                initializeCharts();
+                loadReportData();
+            });
+        }
+
+        function generateMockContainerData(count) {
+            const types = ['Standard', 'Refrigerated', 'Flat Rack', 'Open Top'];
+            const statuses = ['Available', 'Rented', 'Maintenance'];
+            return Array.from({ length: count }, (_, i) => ({
+                serialNo: `CONT-${String(i + 1).padStart(3, '0')}`,
+                type: types[Math.floor(Math.random() * types.length)],
+                size: Math.floor(Math.random() * 61) + 20,
+                status: statuses[Math.floor(Math.random() * statuses.length)],
+                dailyCost: Math.floor(Math.random() * 71) + 30
+            }));
+        }
+
+        function generateMockRentalData(count) {
+            const customers = ['Customer A', 'Customer B', 'Customer C', 'Customer D'];
+            return Array.from({ length: count }, (_, i) => ({
+                serialNo: `CONT-${String(i + 1).padStart(3, '0')}`,
+                customer: customers[Math.floor(Math.random() * customers.length)],
+                startDate: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
+                duration: Math.floor(Math.random() * 30) + 1,
+                amount: Math.floor(Math.random() * 4501) + 500
+            }));
+        }
+
+        function generateMockShippingData(count) {
+            const locations = ['Location A', 'Location B', 'Location C'];
+            return Array.from({ length: count }, (_, i) => ({
+                serialNo: `CONT-${String(i + 1).padStart(3, '0')}`,
+                from: locations[Math.floor(Math.random() * locations.length)],
+                to: locations[Math.floor(Math.random() * locations.length)],
+                landDate: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
+                dispatchDate: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0]
+            }));
+        }
+
+        function loadReportData() {
+            // Containers
+            const containers = generateMockContainerData(50);
+            const containerTbody = document.querySelector('#container-table tbody');
+            if (!containerTbody) {
+                console.error('Container table body not found');
+                return;
+            }
+            containerTbody.innerHTML = '';
+            containers.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.serialNo}</td>
+                    <td>${item.type}</td>
+                    <td>${item.size}</td>
+                    <td>${item.status}</td>
+                    <td>${item.dailyCost}</td>
+                `;
+                containerTbody.appendChild(row);
+            });
+            console.log('Container table populated with', containers.length, 'rows');
+            const totalContainers = containers.length;
+            const availableContainers = containers.filter(c => c.status === 'Available').length;
+            const rentedContainers = containers.filter(c => c.status === 'Rented').length;
+            const totalSpace = containers.reduce((sum, c) => sum + c.size, 0);
+            const totalContainersEl = document.querySelector('#total-containers');
+            const availableContainersEl = document.querySelector('#available-containers');
+            const rentedContainersEl = document.querySelector('#rented-containers');
+            const totalSpaceEl = document.querySelector('#total-space');
+            if (totalContainersEl) totalContainersEl.textContent = totalContainers;
+            else console.error('Total containers element not found');
+            if (availableContainersEl) availableContainersEl.textContent = availableContainers;
+            else console.error('Available containers element not found');
+            if (rentedContainersEl) rentedContainersEl.textContent = rentedContainers;
+            else console.error('Rented containers element not found');
+            if (totalSpaceEl) totalSpaceEl.textContent = totalSpace;
+            else console.error('Total space element not found');
+
+            // Rentals
+            const rentals = generateMockRentalData(50);
+            const rentalsTbody = document.querySelector('#rentals-table tbody');
+            if (!rentalsTbody) {
+                console.error('Rentals table body not found');
+                return;
+            }
+            rentalsTbody.innerHTML = '';
+            rentals.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.serialNo}</td>
+                    <td>${item.customer}</td>
+                    <td>${item.startDate}</td>
+                    <td>${item.duration}</td>
+                    <td>${item.amount}</td>
+                `;
+                rentalsTbody.appendChild(row);
+            });
+            console.log('Rentals table populated with', rentals.length, 'rows');
+            const totalRentals = rentals.length;
+            const activeRentals = rentals.filter(r => new Date(r.startDate).getTime() + r.duration * 86400000 >= new Date().getTime()).length;
+            const totalRevenue = rentals.reduce((sum, r) => sum + r.amount, 0);
+            const avgDuration = rentals.reduce((sum, r) => sum + r.duration, 0) / rentals.length;
+            const totalRentalsEl = document.querySelector('#total-rentals');
+            const activeRentalsEl = document.querySelector('#active-rentals');
+            const totalRevenueEl = document.querySelector('#total-revenue');
+            const avgDurationEl = document.querySelector('#avg-duration');
+            if (totalRentalsEl) totalRentalsEl.textContent = totalRentals;
+            else console.error('Total rentals element not found');
+            if (activeRentalsEl) activeRentalsEl.textContent = activeRentals;
+            else console.error('Active rentals element not found');
+            if (totalRevenueEl) totalRevenueEl.textContent = totalRevenue.toFixed(2);
+            else console.error('Total revenue element not found');
+            if (avgDurationEl) avgDurationEl.textContent = avgDuration.toFixed(1);
+            else console.error('Avg duration element not found');
+
+            // Shipping
+            const shipping = generateMockShippingData(50);
+            const shippingTbody = document.querySelector('#shipping-table tbody');
+            if (!shippingTbody) {
+                console.error('Shipping table body not found');
+                return;
+            }
+            shippingTbody.innerHTML = '';
+            shipping.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.serialNo}</td>
+                    <td>${item.from}</td>
+                    <td>${item.to}</td>
+                    <td>${item.landDate}</td>
+                    <td>${item.dispatchDate}</td>
+                `;
+                shippingTbody.appendChild(row);
+            });
+            console.log('Shipping table populated with', shipping.length, 'rows');
+            const totalShipments = shipping.length;
+            const dispatchedToday = shipping.filter(s => s.dispatchDate === new Date().toISOString().split('T')[0]).length;
+            const inTransit = shipping.filter(s => new Date(s.dispatchDate) <= new Date() && new Date(s.landDate) >= new Date()).length;
+            const transitTimes = shipping.map(s => (new Date(s.landDate) - new Date(s.dispatchDate)) / 86400000).filter(t => t > 0);
+            const avgTransitTime = transitTimes.length > 0 ? transitTimes.reduce((sum, t) => sum + t, 0) / transitTimes.length : 0;
+            const totalShipmentsEl = document.querySelector('#total-shipments');
+            const dispatchedTodayEl = document.querySelector('#dispatched-today');
+            const avgTransitTimeEl = document.querySelector('#avg-transit-time');
+            const inTransitEl = document.querySelector('#in-transit');
+            if (totalShipmentsEl) totalShipmentsEl.textContent = totalShipments;
+            else console.error('Total shipments element not found');
+            if (dispatchedTodayEl) dispatchedTodayEl.textContent = dispatchedToday;
+            else console.error('Dispatched today element not found');
+            if (avgTransitTimeEl) avgTransitTimeEl.textContent = avgTransitTime.toFixed(1);
+            else console.error('Avg transit time element not found');
+            if (inTransitEl) inTransitEl.textContent = inTransit;
+            else console.error('In transit element not found');
+        }
+
+        function initializeCharts() {
+            Object.values(charts).forEach(chart => chart.destroy());
+            charts['status-distribution'] = new Chart(document.getElementById('status-distribution-chart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: [i18next.t('index.availableContainers'), i18next.t('index.rentedContainers'), 'Maintenance'],
+                    datasets: [{ data: [20, 25, 5], backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'], borderWidth: 1 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: 'top' }, title: { display: true, text: i18next.t('reports.statusDistribution') } } }
+            });
+            charts['container-types'] = new Chart(document.getElementById('container-types-chart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Standard', 'Refrigerated', 'Flat Rack', 'Open Top'],
+                    datasets: [{ label: i18next.t('index.count'), data: [15, 10, 12, 13], backgroundColor: '#36A2EB', borderWidth: 1 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { display: false }, title: { display: true, text: i18next.t('index.containerTypes') } }, scales: { y: { beginAtZero: true } } }
+            });
+            charts['containers-by-location'] = new Chart(document.getElementById('containers-by-location-chart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Location A', 'Location B', 'Location C'],
+                    datasets: [{ label: i18next.t('index.count'), data: [20, 15, 15], backgroundColor: '#36A2EB', borderWidth: 1 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { display: false }, title: { display: true, text: i18next.t('index.containersByLocation') } }, scales: { y: { beginAtZero: true } } }
+            });
+            charts['revenue-customer'] = new Chart(document.getElementById('revenue-customer-chart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['Customer A', 'Customer B', 'Customer C', 'Customer D'],
+                    datasets: [{ data: [20000, 15000, 10000, 5000], backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0'], borderWidth: 1 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: 'top' }, title: { display: true, text: i18next.t('rental.revenueByCustomer') } } }
+            });
+            charts['revenue-over-time'] = new Chart(document.getElementById('revenue-over-time-chart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: [i18next.t('finance.month', { month: 'Jan' }), i18next.t('finance.month', { month: 'Feb' }), i18next.t('finance.month', { month: 'Mar' }), i18next.t('finance.month', { month: 'Apr' })],
+                    datasets: [{ label: i18next.t('rental.revenueOverTime'), data: [3000, 4500, 3600, 5400], borderColor: '#36A2EB', backgroundColor: 'rgba(54, 162, 235, 0.2)', fill: true }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: 'top' }, title: { display: true, text: i18next.t('rental.revenueOverTime') } }, scales: { y: { beginAtZero: true } } }
+            });
+            charts['shipments-destination'] = new Chart(document.getElementById('shipments-destination-chart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['Location A', 'Location B', 'Location C'],
+                    datasets: [{ data: [20, 15, 15], backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'], borderWidth: 1 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { position: 'top' }, title: { display: true, text: i18next.t('reports.shipmentsByDestination') } } }
+            });
+            charts['shipments-container-type'] = new Chart(document.getElementById('shipments-container-type-chart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Standard', 'Refrigerated', 'Flat Rack', 'Open Top'],
+                    datasets: [{ label: i18next.t('index.count'), data: [15, 10, 12, 13], backgroundColor: '#36A2EB', borderWidth: 1 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { legend: { display: false }, title: { display: true, text: i18next.t('reports.shipmentsByContainerType') } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'login.html';
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+            } else {
+                console.error('Sidebar element not found');
+            }
+        }
+
+        function setupSidebarAutoHide() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.querySelector('.toggle-btn');
+            if (!sidebar || !toggleBtn) {
+                console.error('Sidebar or toggle button not found');
+                return;
+            }
+            // Auto-hide on sidebar link or close button click
+            const sidebarLinks = sidebar.querySelectorAll('a');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    sidebar.classList.remove('active');
+                    console.log('Sidebar hidden due to link click');
+                });
+            });
+            const closeButton = sidebar.querySelector('.sidebar-close-btn');
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    sidebar.classList.remove('active');
+                    console.log('Sidebar hidden due to close button click');
+                });
+            } else {
+                console.error('Sidebar close button not found');
+            }
+            // Auto-hide on outside click
+            document.addEventListener('click', (event) => {
+                if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target) && sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                    console.log('Sidebar hidden due to outside click');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'login.html';
+                return;
+            }
+            if (typeof i18next !== 'undefined') {
+                i18next.init({
+                    lng: localStorage.getItem('language') || 'en',
+                    fallbackLng: 'en',
+                    resources: {
+                        en: {
+                            translation: {
+                                login: { english: 'English', arabic: 'Arabic' },
+                                index: {
+                                    cyms: 'CYMS',
+                                    dashboard: 'Dashboard',
+                                    containers: 'Containers',
+                                    rentals: 'Rentals',
+                                    shipping: 'Shipping',
+                                    finance: 'Finance',
+                                    reports: 'Reports',
+                                    logout: 'Logout',
+                                    filterByDateRange: 'Filter by Date Range:',
+                                    filterByCustomer: 'Filter by Customer:',
+                                    allCustomers: 'All Customers',
+                                    filterByLocation: 'Filter by Location:',
+                                    allLocations: 'All Locations',
+                                    totalContainers: 'Total Containers',
+                                    availableContainers: 'Available Containers',
+                                    rentedContainers: 'Rented Containers',
+                                    availableSpace: 'Available Space (sqm)',
+                                    totalRevenue: 'Total Revenue ($)',
+                                    exportCsv: 'Export to CSV',
+                                    print: 'Print',
+                                    allTypes: 'All Types',
+                                    containerTypes: 'Container Types',
+                                    containersByLocation: 'Containers by Location',
+                                    count: 'Count'
+                                },
+                                container: {
+                                    serialNo: 'Serial No',
+                                    type: 'Type',
+                                    size: 'Size (sqm)',
+                                    status: 'Status',
+                                    dailyCost: 'Daily Cost ($)'
+                                },
+                                rental: {
+                                    serialNo: 'Serial No',
+                                    customer: 'Customer',
+                                    startDate: 'Start Date',
+                                    amount: 'Amount ($)',
+                                    revenueByCustomer: 'Revenue by Customer',
+                                    revenueOverTime: 'Rental Revenue Over Time'
+                                },
+                                shipping: {
+                                    serialNo: 'Serial No',
+                                    from: 'From',
+                                    to: 'To',
+                                    landDate: 'Land Date',
+                                    dispatchDate: 'Dispatch Date'
+                                },
+                                reports: {
+                                    reports: 'Reports',
+                                    printCurrent: 'Print Current Report',
+                                    filterByContainerType: 'Filter by Container Type:',
+                                    containerDetails: 'Container Details',
+                                    containerAnalytics: 'Container Analytics',
+                                    statusDistribution: 'Status Distribution',
+                                    rentalDetails: 'Rental Details',
+                                    rentalAnalytics: 'Rental Analytics',
+                                    totalRentals: 'Total Rentals',
+                                    activeRentals: 'Active Rentals',
+                                    avgDuration: 'Avg Duration (days)',
+                                    duration: 'Duration (days)',
+                                    shippingDetails: 'Shipping Details',
+                                    shippingAnalytics: 'Shipping Analytics',
+                                    totalShipments: 'Total Shipments',
+                                    dispatchedToday: 'Dispatched Today',
+                                    avgTransitTime: 'Avg Transit Time (days)',
+                                    inTransit: 'In Transit',
+                                    shipmentsByDestination: 'Shipments by Destination',
+                                    shipmentsByContainerType: 'Shipments by Container Type'
+                                },
+                                finance: {
+                                    month: { Jan: 'Jan', Feb: 'Feb', Mar: 'Mar', Apr: 'Apr' }
+                                }
+                            }
+                        },
+                        ar: {
+                            translation: {
+                                login: { english: 'الإنجليزية', arabic: 'عربي' },
+                                index: {
+                                    cyms: 'CYMS',
+                                    dashboard: 'لوحة التحكم',
+                                    containers: 'الحاويات',
+                                    rentals: 'التأجير',
+                                    shipping: 'الشحن',
+                                    finance: 'المالية',
+                                    reports: 'التقارير',
+                                    logout: 'تسجيل الخروج',
+                                    filterByDateRange: 'تصفية حسب نطاق التاريخ:',
+                                    filterByCustomer: 'تصفية حسب العميل:',
+                                    allCustomers: 'جميع العملاء',
+                                    filterByLocation: 'تصفية حسب الموقع:',
+                                    allLocations: 'جميع المواقع',
+                                    totalContainers: 'إجمالي الحاويات',
+                                    availableContainers: 'الحاويات المتاحة',
+                                    rentedContainers: 'الحاويات المؤجرة',
+                                    availableSpace: 'المساحة المتاحة (متر مربع)',
+                                    totalRevenue: 'إجمالي الإيرادات ($)',
+                                    exportCsv: 'تصدير إلى CSV',
+                                    print: 'طباعة',
+                                    allTypes: 'جميع الأنواع',
+                                    containerTypes: 'أنواع الحاويات',
+                                    containersByLocation: 'الحاويات حسب الموقع',
+                                    count: 'العدد'
+                                },
+                                container: {
+                                    serialNo: 'الرقم التسلسلي',
+                                    type: 'النوع',
+                                    size: 'الحجم (متر مربع)',
+                                    status: 'الحالة',
+                                    dailyCost: 'التكلفة اليومية ($)'
+                                },
+                                rental: {
+                                    serialNo: 'الرقم التسلسلي',
+                                    customer: 'العميل',
+                                    startDate: 'تاريخ البدء',
+                                    amount: 'المبلغ ($)',
+                                    revenueByCustomer: 'الإيرادات حسب العميل',
+                                    revenueOverTime: 'إيرادات التأجير بمرور الوقت'
+                                },
+                                shipping: {
+                                    serialNo: 'الرقم التسلسلي',
+                                    from: 'من',
+                                    to: 'إلى',
+                                    landDate: 'تاريخ الوصول',
+                                    dispatchDate: 'تاريخ الإرسال'
+                                },
+                                reports: {
+                                    reports: 'التقارير',
+                                    printCurrent: 'طباعة التقرير الحالي',
+                                    filterByContainerType: 'تصفية حسب نوع الحاوية:',
+                                    containerDetails: 'تفاصيل الحاوية',
+                                    containerAnalytics: 'تحليلات الحاوية',
+                                    statusDistribution: 'توزيع الحالة',
+                                    rentalDetails: 'تفاصيل التأجير',
+                                    rentalAnalytics: 'تحليلات التأجير',
+                                    totalRentals: 'إجمالي التأجيرات',
+                                    activeRentals: 'التأجيرات النشطة',
+                                    avgDuration: 'متوسط المدة (أيام)',
+                                    duration: 'المدة (أيام)',
+                                    shippingDetails: 'تفاصيل الشحن',
+                                    shippingAnalytics: 'تحليلات الشحن',
+                                    totalShipments: 'إجمالي الشحنات',
+                                    dispatchedToday: 'تم الإرسال اليوم',
+                                    avgTransitTime: 'متوسط وقت العبور (أيام)',
+                                    inTransit: 'في العبور',
+                                    shipmentsByDestination: 'الشحنات حسب الوجهة',
+                                    shipmentsByContainerType: 'الشحنات حسب نوع الحاوية'
+                                },
+                                finance: {
+                                    month: { Jan: 'يناير', Feb: 'فبراير', Mar: 'مارس', Apr: 'أبريل' }
+                                }
+                            }
+                        }
+                    }
+                }, function(err, t) {
+                    if (err) {
+                        console.error('i18next initialization failed:', err);
+                        return;
+                    }
+                    updateContent();
+                    if (typeof Chart !== 'undefined') {
+                        initializeCharts();
+                        loadReportData();
+                        setupSidebarAutoHide();
+                        const sidebar = document.getElementById('sidebar');
+                        if (sidebar) {
+                            sidebar.classList.remove('active');
+                            console.log('Sidebar hidden on page load');
+                        } else {
+                            console.error('Sidebar element not found on page load');
+                        }
+                    } else {
+                        console.error('Chart.js is not loaded.');
+                    }
+                });
+            } else {
+                console.error('i18next is not loaded.');
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+```

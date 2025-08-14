@@ -1,0 +1,82 @@
+{
+  "login": {
+    "login": "تسجيل الدخول",
+    "username": "اسم المستخدم",
+    "password": "كلمة المرور",
+    "selectLanguage": "اختر اللغة",
+    "english": "الإنجليزية",
+    "arabic": "العربية"
+  },
+  "dashboard": {
+    "dashboard": "لوحة التحكم",
+    "keyMetrics": "المقاييس الرئيسية",
+    "totalContainers": "إجمالي الحاويات",
+    "availableContainers": "الحاويات المتاحة",
+    "rentedContainers": "الحاويات المؤجرة",
+    "dispatchingToday": "الشحن اليوم",
+    "availableSpace": "المساحة المتاحة (متر مربع)",
+    "totalRevenue": "إجمالي الإيرادات ($)",
+    "containerTypeSummary": "ملخص نوع الحاوية",
+    "type": "النوع",
+    "count": "العدد",
+    "totalSpace": "إجمالي المساحة (متر مربع)",
+    "avgDailyCost": "متوسط التكلفة اليومية ($)",
+    "analyticsCharts": "رسوم بيانية تحليلية",
+    "containerStatus": "حالة الحاوية",
+    "containerTypes": "أنواع الحاويات",
+    "revenueOverTime": "الإيرادات على مر الزمن",
+    "print": "طباعة",
+    "exportCSV": "تصدير إلى CSV",
+    "filterByDateRange": "تصفية حسب نطاق التاريخ",
+    "allCustomers": "جميع العملاء",
+    "allLocations": "جميع المواقع",
+    "filterByCustomer": "تصفية حسب العميل",
+    "filterByLocation": "تصفية حسب الموقع"
+  },
+  "containerManagement": {
+    "containerManagement": "إدارة الحاويات",
+    "addEditContainer": "إضافة/تعديل الحاوية",
+    "serialNo": "الرقم التسلسلي",
+    "type": "النوع (مثل 20 قدم، 40 قدم)",
+    "size": "الحجم (متر مربع)",
+    "dailyRentalCost": "تكلفة الإيجار اليومية ($)",
+    "save": "حفظ",
+    "containerList": "قائمة الحاويات",
+    "status": "الحالة",
+    "actions": "الإجراءات"
+  },
+  "rentalManagement": {
+    "rentalManagement": "إدارة الإيجار",
+    "rentContainer": "إيجار الحاوية",
+    "container": "الحاوية",
+    "customerName": "اسم العميل",
+    "dailyPrice": "السعر اليومي ($)",
+    "rent": "إيجار",
+    "currentRentals": "الإيجارات الحالية"
+  },
+  "shippingManagement": {
+    "shippingManagement": "إدارة الشحن",
+    "containerShippingDetails": "تفاصيل شحن الحاوية",
+    "from": "من",
+    "to": "إلى",
+    "date": "التاريخ",
+    "edit": "تعديل",
+    "save": "حفظ"
+  },
+  "financialManagement": {
+    "financialManagement": "إدارة المالية",
+    "transactions": "المعاملات",
+    "type": "النوع",
+    "serialNo": "الرقم التسلسلي",
+    "customer": "العميل",
+    "amount": "المبلغ",
+    "date": "التاريخ",
+    "total": "الإجمالي",
+    "ledger": "الدفتر",
+    "monthlyReport": "التقرير الشهري",
+    "quarterlyReport": "التقرير الربعي",
+    "revenueByType": "الإيرادات حسب النوع",
+    "revenueByCustomer": "الإيرادات حسب العميل",
+    "totalRevenue": "إجمالي الإيرادات"
+  }
+}
